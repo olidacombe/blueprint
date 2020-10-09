@@ -7,83 +7,83 @@
   ==============================================================================
 */
 
-#include <string>
 
-#define BP_SET_YGVALUE(ygvalue, setter, ...)         \
-    switch (ygvalue.unit)                            \
-    {                                                \
-    case YGUnitAuto:                                 \
-    case YGUnitUndefined:                            \
-        setter(__VA_ARGS__, YGUndefined);            \
-        break;                                       \
-    case YGUnitPoint:                                \
-        setter(__VA_ARGS__, ygvalue.value);          \
-        break;                                       \
-    case YGUnitPercent:                              \
-        setter##Percent(__VA_ARGS__, ygvalue.value); \
-        break;                                       \
-    }
+#define BP_SET_YGVALUE(ygvalue, setter, ...)            \
+switch (ygvalue.unit)                                   \
+{                                                       \
+    case YGUnitAuto:                                    \
+    case YGUnitUndefined:                               \
+        setter(__VA_ARGS__, YGUndefined);               \
+        break;                                          \
+    case YGUnitPoint:                                   \
+        setter(__VA_ARGS__, ygvalue.value);             \
+        break;                                          \
+    case YGUnitPercent:                                 \
+        setter##Percent(__VA_ARGS__, ygvalue.value);    \
+        break;                                          \
+}
 
-#define BP_SET_YGVALUE_AUTO(ygvalue, setter, ...)    \
-    switch (ygvalue.unit)                            \
-    {                                                \
-    case YGUnitAuto:                                 \
-        setter##Auto(__VA_ARGS__);                   \
-        break;                                       \
-    case YGUnitUndefined:                            \
-        setter(__VA_ARGS__, YGUndefined);            \
-        break;                                       \
-    case YGUnitPoint:                                \
-        setter(__VA_ARGS__, ygvalue.value);          \
-        break;                                       \
-    case YGUnitPercent:                              \
-        setter##Percent(__VA_ARGS__, ygvalue.value); \
-        break;                                       \
-    }
+#define BP_SET_YGVALUE_AUTO(ygvalue, setter, ...)       \
+switch (ygvalue.unit)                                   \
+{                                                       \
+    case YGUnitAuto:                                    \
+        setter##Auto(__VA_ARGS__);                      \
+        break;                                          \
+    case YGUnitUndefined:                               \
+        setter(__VA_ARGS__, YGUndefined);               \
+        break;                                          \
+    case YGUnitPoint:                                   \
+        setter(__VA_ARGS__, ygvalue.value);             \
+        break;                                          \
+    case YGUnitPercent:                                 \
+        setter##Percent(__VA_ARGS__, ygvalue.value);    \
+        break;                                          \
+}
 
-#define BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, ...)                      \
-    {                                                                                \
-        YGValue ygval = {0.0f, YGUnitUndefined};                                     \
-                                                                                     \
-        if (value.isDouble())                                                        \
-            ygval = {(float)value, YGUnitPoint};                                     \
-        else if (value.isString() && value.toString() == "auto")                     \
-            ygval = {0.0f, YGUnitAuto};                                              \
-        else if (value.isString() && value.toString().trim().contains("%"))          \
-        {                                                                            \
-            juce::String strVal = value.toString().retainCharacters("-1234567890."); \
-            ygval = {strVal.getFloatValue(), YGUnitPercent};                         \
-        }                                                                            \
-                                                                                     \
-        BP_SET_YGVALUE_AUTO(ygval, setter, __VA_ARGS__);                             \
-    }
+#define BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, ...)                     \
+{                                                                                   \
+    YGValue ygval = { 0.0f, YGUnitUndefined };                                      \
+                                                                                    \
+    if (value.isDouble())                                                           \
+        ygval = { (float) value, YGUnitPoint };                                     \
+    else if (value.isString() && value.toString() == "auto")                        \
+        ygval = { 0.0f, YGUnitAuto };                                               \
+    else if (value.isString() && value.toString().trim().contains("%"))             \
+    {                                                                               \
+        juce::String strVal = value.toString().retainCharacters("-1234567890.");    \
+        ygval = { strVal.getFloatValue(), YGUnitPercent };                          \
+    }                                                                               \
+                                                                                    \
+    BP_SET_YGVALUE_AUTO(ygval, setter, __VA_ARGS__);                                \
+}
 
-#define BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, ...)                           \
-    {                                                                                \
-        YGValue ygval = {0.0f, YGUnitUndefined};                                     \
-                                                                                     \
-        if (value.isDouble())                                                        \
-            ygval = {(float)value, YGUnitPoint};                                     \
-        else if (value.isString() && value.toString().trim().contains("%"))          \
-        {                                                                            \
-            juce::String strVal = value.toString().retainCharacters("-1234567890."); \
-            ygval = {strVal.getFloatValue(), YGUnitPercent};                         \
-        }                                                                            \
-                                                                                     \
-        BP_SET_YGVALUE(ygval, setter, __VA_ARGS__);                                  \
-    }
+#define BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, ...)                          \
+{                                                                                   \
+    YGValue ygval = { 0.0f, YGUnitUndefined };                                      \
+                                                                                    \
+    if (value.isDouble())                                                           \
+        ygval = { (float) value, YGUnitPoint };                                     \
+    else if (value.isString() && value.toString().trim().contains("%"))             \
+    {                                                                               \
+        juce::String strVal = value.toString().retainCharacters("-1234567890.");    \
+        ygval = { strVal.getFloatValue(), YGUnitPercent };                          \
+    }                                                                               \
+                                                                                    \
+    BP_SET_YGVALUE(ygval, setter, __VA_ARGS__);                                     \
+}
 
 #define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node) \
-    {                                                   \
-        if (value.isDouble())                           \
-            setter(node, (float)value);                 \
-    }
+{                                                       \
+    if (value.isDouble())                               \
+        setter(node, (float) value);                    \
+}
 
 namespace blueprint
 {
 
     namespace
     {
+
         std::string toCamel(const std::string &i)
         {
             std::string o;
@@ -175,10 +175,10 @@ namespace blueprint
         });
 
         //==============================================================================
-        template <typename T>
-        bool validateFlexProperty(juce::String value, std::map<juce::String, T> validValues)
+        template<typename T>
+        bool validateFlexProperty (juce::String value, std::map<juce::String, T> validValues)
         {
-            for (const auto &[flexValue, enumValue] : validValues)
+            for (const auto& [flexValue, enumValue] : validValues)
             {
                 if (value.equalsIgnoreCase(flexValue))
                 {
@@ -189,10 +189,10 @@ namespace blueprint
             return false;
         }
 
-    } // namespace
+    }
 
     //==============================================================================
-    void ShadowView::setProperty(const juce::Identifier &name, const juce::var &newValue)
+    void ShadowView::setProperty (const juce::Identifier& name, const juce::var& newValue)
     {
         props.set(name, newValue);
 
@@ -200,55 +200,55 @@ namespace blueprint
         // Flex enums
         if (name == juce::Identifier("direction"))
         {
-            jassert(validateFlexProperty(newValue, ValidDirectionValues));
+            jassert (validateFlexProperty(newValue, ValidDirectionValues));
             YGNodeStyleSetDirection(yogaNode, ValidDirectionValues[newValue]);
         }
 
         if (name == juce::Identifier("flex-direction"))
         {
-            jassert(validateFlexProperty(newValue, ValidFlexDirectionValues));
+            jassert (validateFlexProperty(newValue, ValidFlexDirectionValues));
             YGNodeStyleSetFlexDirection(yogaNode, ValidFlexDirectionValues[newValue]);
         }
 
         if (name == juce::Identifier("justify-content"))
         {
-            jassert(validateFlexProperty(newValue, ValidJustifyValues));
+            jassert (validateFlexProperty(newValue, ValidJustifyValues));
             YGNodeStyleSetJustifyContent(yogaNode, ValidJustifyValues[newValue]);
         }
 
         if (name == juce::Identifier("align-items"))
         {
-            jassert(validateFlexProperty(newValue, ValidAlignValues));
+            jassert (validateFlexProperty(newValue, ValidAlignValues));
             YGNodeStyleSetAlignItems(yogaNode, ValidAlignValues[newValue]);
         }
 
         if (name == juce::Identifier("align-content"))
         {
-            jassert(validateFlexProperty(newValue, ValidAlignValues));
+            jassert (validateFlexProperty(newValue, ValidAlignValues));
             YGNodeStyleSetAlignContent(yogaNode, ValidAlignValues[newValue]);
         }
 
         if (name == juce::Identifier("align-self"))
         {
-            jassert(validateFlexProperty(newValue, ValidAlignValues));
+            jassert (validateFlexProperty(newValue, ValidAlignValues));
             YGNodeStyleSetAlignSelf(yogaNode, ValidAlignValues[newValue]);
         }
 
         if (name == juce::Identifier("position"))
         {
-            jassert(validateFlexProperty(newValue, ValidPositionTypeValues));
+            jassert (validateFlexProperty(newValue, ValidPositionTypeValues));
             YGNodeStyleSetPositionType(yogaNode, ValidPositionTypeValues[newValue]);
         }
 
         if (name == juce::Identifier("flex-wrap"))
         {
-            jassert(validateFlexProperty(newValue, ValidFlexWrapValues));
+            jassert (validateFlexProperty(newValue, ValidFlexWrapValues));
             YGNodeStyleSetFlexWrap(yogaNode, ValidFlexWrapValues[newValue]);
         }
 
         if (name == juce::Identifier("overflow"))
         {
-            jassert(validateFlexProperty(newValue, ValidOverflowValues));
+            jassert (validateFlexProperty(newValue, ValidOverflowValues));
             YGNodeStyleSetOverflow(yogaNode, ValidOverflowValues[newValue]);
         }
 
@@ -279,11 +279,11 @@ namespace blueprint
 
         //==============================================================================
         // Margin
-        juce::Identifier marginMetaProp("margin");
+        juce::Identifier marginMetaProp ("margin");
 
-        for (const auto &[edgeName, enumValue] : ValidEdgeValues)
+        for (const auto& [edgeName, enumValue] : ValidEdgeValues)
         {
-            juce::Identifier propId(juce::String("margin-") + edgeName);
+            juce::Identifier propId (juce::String("margin-") + edgeName);
 
             if (name == propId || (name == marginMetaProp && enumValue == YGEdgeAll))
             {
@@ -293,11 +293,11 @@ namespace blueprint
 
         //==============================================================================
         // Padding
-        juce::Identifier paddingMetaProp("padding");
+        juce::Identifier paddingMetaProp ("padding");
 
-        for (const auto &[edgeName, enumValue] : ValidEdgeValues)
+        for (const auto& [edgeName, enumValue] : ValidEdgeValues)
         {
-            juce::Identifier propId(juce::String("padding-") + edgeName);
+            juce::Identifier propId (juce::String("padding-") + edgeName);
 
             if (name == propId || (name == paddingMetaProp && enumValue == YGEdgeAll))
             {
@@ -307,7 +307,7 @@ namespace blueprint
 
         //==============================================================================
         // Position
-        for (const auto &[edgeName, enumValue] : ValidEdgeValues)
+        for (const auto& [edgeName, enumValue] : ValidEdgeValues)
         {
             if (name == juce::Identifier(edgeName))
             {
@@ -316,4 +316,4 @@ namespace blueprint
         }
     }
 
-} // namespace blueprint
+}
