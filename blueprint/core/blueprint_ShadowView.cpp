@@ -117,12 +117,18 @@ namespace blueprint
           return toCamel(si, pascal);
         }
 
+        template <>
+        juce::Identifier toCamel<juce::Identifier>(const juce::Identifier &i, bool pascal) {
+          return toCamel(i.toString(), pascal);
+        }
+
         typedef juce::String validationMapKey;
+
         template <typename T>
         const std::map<validationMapKey, T> makeValidationMap(std::initializer_list<std::pair<const validationMapKey, T>> init)
         {
-            std::map<validationMapKey, T> map(init);
-            for(const auto &[k, v] : map) {
+            std::map<validationMapKey, T> map;
+            for(const auto &[k, v] : init) {
                 map[toCamel(k)] = v;
             }
             return std::move(map);
@@ -208,8 +214,14 @@ namespace blueprint
     }
 
     //==============================================================================
-    void ShadowView::setProperty (const juce::Identifier& name, const juce::var& newValue)
+    void ShadowView::setProperty (const juce::Identifier& _name, const juce::var& _newValue)
     {
+        juce::Identifier name(toCamel(_name));
+        juce::var newValue(_newValue);
+        if(newValue.isString()) {
+          newValue = toCamel(_newValue.toString());
+        }
+
         props.set(name, newValue);
 
         //==============================================================================
