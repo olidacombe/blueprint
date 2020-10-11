@@ -50,7 +50,7 @@ switch (ygvalue.unit)                                   \
         ygval = { 0.0f, YGUnitAuto };                                               \
     else if (value.isString() && value.toString().trim().contains("%"))             \
     {                                                                               \
-        juce::String strVal = value.toString().retainCharacters("-1234567890.");    \
+        validationMapKey strVal = value.toString().retainCharacters("-1234567890.");    \
         ygval = { strVal.getFloatValue(), YGUnitPercent };                          \
     }                                                                               \
                                                                                     \
@@ -65,7 +65,7 @@ switch (ygvalue.unit)                                   \
         ygval = { (float) value, YGUnitPoint };                                     \
     else if (value.isString() && value.toString().trim().contains("%"))             \
     {                                                                               \
-        juce::String strVal = value.toString().retainCharacters("-1234567890.");    \
+        validationMapKey strVal = value.toString().retainCharacters("-1234567890.");    \
         ygval = { strVal.getFloatValue(), YGUnitPercent };                          \
     }                                                                               \
                                                                                     \
@@ -85,16 +85,17 @@ namespace blueprint
     {
 
         template <typename T>
-        T toCamel(const T& i) {return i;}
+        T toCamel(const T& i, bool pascal=false) {return pascal?i:i;}
         
         template <>
-        std::string toCamel<std::string>(const std::string &i)
+        std::string toCamel<std::string>(const std::string &i, bool pascal)
         {
             std::string o;
             o.reserve(i.length());
-            bool makeUpper = false;
             auto it = i.cbegin();
-            o += static_cast<char>(tolower(*it++));
+            bool makeUpper = pascal;
+            o += static_cast<char>(makeUpper?toupper(*it++):tolower(*it++));
+            makeUpper=false;
             for (; it != i.cend(); it++)
             {
                 if (*it == '-' || *it == '_')
@@ -111,9 +112,9 @@ namespace blueprint
         }
 
         template <>
-        juce::String toCamel<juce::String>(const juce::String &i) {
+        juce::String toCamel<juce::String>(const juce::String &i, bool pascal) {
           std::string si = i.toStdString();
-          return toCamel(si);
+          return toCamel(si, pascal);
         }
 
         typedef juce::String validationMapKey;
@@ -191,7 +192,7 @@ namespace blueprint
 
         //==============================================================================
         template<typename T>
-        bool validateFlexProperty (juce::String value, std::map<juce::String, T> validValues)
+        bool validateFlexProperty (validationMapKey value, std::map<validationMapKey, T> validValues)
         {
             for (const auto& [flexValue, enumValue] : validValues)
             {
@@ -219,31 +220,31 @@ namespace blueprint
             YGNodeStyleSetDirection(yogaNode, ValidDirectionValues[newValue]);
         }
 
-        if (name == juce::Identifier("flex-direction"))
+        if (name == juce::Identifier("flexDirection"))
         {
             jassert (validateFlexProperty(newValue, ValidFlexDirectionValues));
             YGNodeStyleSetFlexDirection(yogaNode, ValidFlexDirectionValues[newValue]);
         }
 
-        if (name == juce::Identifier("justify-content"))
+        if (name == juce::Identifier("justifyContent"))
         {
             jassert (validateFlexProperty(newValue, ValidJustifyValues));
             YGNodeStyleSetJustifyContent(yogaNode, ValidJustifyValues[newValue]);
         }
 
-        if (name == juce::Identifier("align-items"))
+        if (name == juce::Identifier("alignItems"))
         {
             jassert (validateFlexProperty(newValue, ValidAlignValues));
             YGNodeStyleSetAlignItems(yogaNode, ValidAlignValues[newValue]);
         }
 
-        if (name == juce::Identifier("align-content"))
+        if (name == juce::Identifier("alignContent"))
         {
             jassert (validateFlexProperty(newValue, ValidAlignValues));
             YGNodeStyleSetAlignContent(yogaNode, ValidAlignValues[newValue]);
         }
 
-        if (name == juce::Identifier("align-self"))
+        if (name == juce::Identifier("alignSelf"))
         {
             jassert (validateFlexProperty(newValue, ValidAlignValues));
             YGNodeStyleSetAlignSelf(yogaNode, ValidAlignValues[newValue]);
@@ -255,7 +256,7 @@ namespace blueprint
             YGNodeStyleSetPositionType(yogaNode, ValidPositionTypeValues[newValue]);
         }
 
-        if (name == juce::Identifier("flex-wrap"))
+        if (name == juce::Identifier("flexWrap"))
         {
             jassert (validateFlexProperty(newValue, ValidFlexWrapValues));
             YGNodeStyleSetFlexWrap(yogaNode, ValidFlexWrapValues[newValue]);
@@ -271,25 +272,25 @@ namespace blueprint
         // Flex dimensions
         if (name == juce::Identifier("flex"))
             BP_SET_FLEX_FLOAT_PROPERTY(newValue, YGNodeStyleSetFlex, yogaNode)
-        if (name == juce::Identifier("flex-grow"))
+        if (name == juce::Identifier("flexGrow"))
             BP_SET_FLEX_FLOAT_PROPERTY(newValue, YGNodeStyleSetFlexGrow, yogaNode)
-        if (name == juce::Identifier("flex-shrink"))
+        if (name == juce::Identifier("flexShrink"))
             BP_SET_FLEX_FLOAT_PROPERTY(newValue, YGNodeStyleSetFlexShrink, yogaNode)
-        if (name == juce::Identifier("flex-basis"))
+        if (name == juce::Identifier("flexBasis"))
             BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(newValue, YGNodeStyleSetFlexBasis, yogaNode)
         if (name == juce::Identifier("width"))
             BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(newValue, YGNodeStyleSetWidth, yogaNode)
         if (name == juce::Identifier("height"))
             BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(newValue, YGNodeStyleSetHeight, yogaNode)
-        if (name == juce::Identifier("min-width"))
+        if (name == juce::Identifier("minWidth"))
             BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMinWidth, yogaNode)
-        if (name == juce::Identifier("min-height"))
+        if (name == juce::Identifier("minHeight"))
             BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMinHeight, yogaNode)
-        if (name == juce::Identifier("max-width"))
+        if (name == juce::Identifier("maxWidth"))
             BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMaxWidth, yogaNode)
-        if (name == juce::Identifier("max-height"))
+        if (name == juce::Identifier("maxHeight"))
             BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMaxHeight, yogaNode)
-        if (name == juce::Identifier("aspect-ratio"))
+        if (name == juce::Identifier("aspectRatio"))
             BP_SET_FLEX_FLOAT_PROPERTY(newValue, YGNodeStyleSetAspectRatio, yogaNode)
 
         //==============================================================================
@@ -298,7 +299,7 @@ namespace blueprint
 
         for (const auto& [edgeName, enumValue] : ValidEdgeValues)
         {
-            juce::Identifier propId (juce::String("margin-") + edgeName);
+            juce::Identifier propId (toCamel(validationMapKey("margin-") + edgeName));
 
             if (name == propId || (name == marginMetaProp && enumValue == YGEdgeAll))
             {
@@ -312,7 +313,7 @@ namespace blueprint
 
         for (const auto& [edgeName, enumValue] : ValidEdgeValues)
         {
-            juce::Identifier propId (juce::String("padding-") + edgeName);
+            juce::Identifier propId (toCamel(validationMapKey("padding-") + edgeName));
 
             if (name == propId || (name == paddingMetaProp && enumValue == YGEdgeAll))
             {
