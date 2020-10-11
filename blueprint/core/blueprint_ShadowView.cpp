@@ -84,7 +84,11 @@ namespace blueprint
     namespace
     {
 
-        std::string toCamel(const std::string &i)
+        template <typename T>
+        T toCamel(const T& i) {return i;}
+        
+        template <>
+        std::string toCamel<std::string>(const std::string &i)
         {
             std::string o;
             o.reserve(i.length());
@@ -106,10 +110,21 @@ namespace blueprint
             return o;
         }
 
+        template <>
+        juce::String toCamel<juce::String>(const juce::String &i) {
+          std::string si = i.toStdString();
+          return toCamel(si);
+        }
+
+        typedef juce::String validationMapKey;
         template <typename T>
-        const std::map<juce::String, T> makeValidationMap(std::initializer_list<std::pair<const juce::String, T>> init)
+        const std::map<validationMapKey, T> makeValidationMap(std::initializer_list<std::pair<const validationMapKey, T>> init)
         {
-            return std::map<juce::String, T>(init);
+            std::map<validationMapKey, T> map(init);
+            for(const auto &[k, v] : map) {
+                map[toCamel(k)] = v;
+            }
+            return std::move(map);
         }
 
         //==============================================================================
