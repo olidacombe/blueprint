@@ -1,7 +1,9 @@
-import SyntheticEvents, 
-       { SyntheticEvent, 
-         SyntheticMouseEvent, 
-         SyntheticKeyboardEvent } from './SyntheticEvents' 
+import SyntheticEvents,
+{
+  SyntheticEvent,
+  SyntheticMouseEvent,
+  SyntheticKeyboardEvent
+} from './SyntheticEvents'
 
 /* global __BlueprintNative__:false */
 
@@ -31,7 +33,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-function noop(): void {}
+function noop(): void { }
 
 export class ViewInstance {
   private _id: string;
@@ -91,9 +93,14 @@ export class ViewInstance {
     }
   }
 
+  forcePropKeyCase(propKey: string): string {
+    return propKey.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+  }
+
   setProperty(propKey: string, value: any): any {
     this._props = Object.assign({}, this._props, {
       [propKey]: value,
+      [this.forcePropKeyCase(propKey)]: value,
     });
 
     if (SyntheticEvents.isMouseEventHandler(propKey)) {
