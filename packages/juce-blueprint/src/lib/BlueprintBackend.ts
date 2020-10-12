@@ -100,7 +100,6 @@ export class ViewInstance {
   setProperty(propKey: string, value: any): any {
     this._props = Object.assign({}, this._props, {
       [propKey]: value,
-      [this.forcePropKeyCase(propKey)]: value,
     });
 
     if (SyntheticEvents.isMouseEventHandler(propKey)) {
@@ -117,8 +116,11 @@ export class ViewInstance {
       });
     }
 
+    // TODO kebab some but not others?
     //@ts-ignore
-    return __BlueprintNative__.setViewProperty(this._id, propKey, value);
+    __BlueprintNative__.setViewProperty(this._id, propKey, value);
+    //@ts-ignore
+    return __BlueprintNative__.setViewProperty(this._id, this.forcePropKeyCase(propKey), value);
   }
 
   bubbleViewEvent(propKey: string, evt: SyntheticEvent): void {
