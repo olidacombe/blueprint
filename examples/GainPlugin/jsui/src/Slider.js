@@ -141,7 +141,7 @@ class Slider extends Component {
   }
 
   render() {
-    const {value, width, height} = this.state;
+    const { value, width, height } = this.state;
 
     return (
       <View
@@ -160,13 +160,13 @@ class Slider extends Component {
 
 const styles = {
   canvas: {
-    'flex': 1.0,
-    'height': '100%',
-    'width': '100%',
-    'position': 'absolute',
-    'left': 0.0,
-    'top': 0.0,
-    'transform-rotate': Math.PI * 1.25,
+    flex: 1.0,
+    height: '100%',
+    width: '100%',
+    position: 'absolute',
+    left: 0.0,
+    top: 0.0,
+    transformRotate: Math.PI * 1.25,
   },
 };
 
