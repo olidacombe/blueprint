@@ -21,18 +21,11 @@ module.exports = {
     [
       "babel-plugin-transform-property-cases",
       {
+        allCss: {
+          source: "camelCase"
+        },
         "kebab-case": [
-          "alignItems",
-          "aspectRatio",
-          "backgroundColor",
-          "flexDirection",
-          "fontSize",
-          "lineSpacing",
-          "justifyContent",
-          "maxWidth",
-          "minHeight",
-          "minWidth",
-          "transformRotate"
+          "transformRotate" // TODO nice way to beat these
         ]
       }
     ]
