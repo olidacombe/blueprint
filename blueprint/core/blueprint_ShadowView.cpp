@@ -306,7 +306,8 @@ namespace blueprint
           try {
             YGNodeStyleSetDirection(node, ValidDirectionValues.at(v));
           } catch(const std::out_of_range& e) { /* TODO log something */ }
-        }}
+        }},
+        {"flex-direction", enumSetter<YGFlexDirection>(YGNodeStyleSetFlexDirection, ValidFlexDirectionValues)}
       /*
             juce::Identifier direction       = "direction";
             juce::Identifier flexDirection   = "flex-direction";
