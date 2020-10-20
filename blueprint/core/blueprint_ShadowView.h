@@ -110,6 +110,9 @@ namespace blueprint
         }
 
         //==============================================================================
+        /** Returns whether or not a given property is a ShadowView/layout property. */
+        static bool isLayoutProperty(const juce::Identifier& prop);
+
         /** Set a property on the shadow view. */
         virtual void setProperty (const juce::Identifier& name, const juce::var& newValue);
 
