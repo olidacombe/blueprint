@@ -7,7 +7,6 @@
   ==============================================================================
 */
 
-
 #define BP_SET_YGVALUE(ygvalue, setter, ...)            \
 switch (ygvalue.unit)                                   \
 {                                                       \
@@ -302,10 +301,33 @@ namespace blueprint
             return false;
     }
 
+    std::map<juce::Identifier, std::function<void(const juce::var&, YGNodeRef)>> propertySetters {
+        {"direction", [](auto &v, auto node) {
+          try {
+            YGNodeStyleSetDirection(node, ValidDirectionValues.at(v));
+          } catch(const std::out_of_range& e) { /* TODO log something */ }
+        }}
+      /*
+            juce::Identifier direction       = "direction";
+            juce::Identifier flexDirection   = "flex-direction";
+            juce::Identifier justifyContent  = "justify-content";
+            juce::Identifier alignItems      = "align-items";
+            juce::Identifier alignContent    = "align-content";
+            juce::Identifier alignSelf       = "align-self";
+            juce::Identifier position        = "position";
+            juce::Identifier flexWrap        = "flex-wrap";
+            juce::Identifier overflow        = "overflow";
+      */
+    };
+
     //==============================================================================
     void ShadowView::setProperty (const juce::Identifier& name, const juce::var& newValue)
     {
         props.set(name, newValue);
+
+        try {
+          (propertySetters.at(name))(newValue, yogaNode);
+        } catch(const std::out_of_range& e) { /* TODO log something */ }
 
         //==============================================================================
         // Flex enums
