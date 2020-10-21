@@ -39,6 +39,14 @@ switch (ygvalue.unit)                                   \
         break;                                          \
 }
 
+// #define YOGA_NODE_DIMENSION_AUTO_PROPERTY_SETTER(setter)
+// {
+//     [](const juce::var& value, YGNodeRef node) {
+//         BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, node);
+//     }
+// }
+
+
 #define BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, ...)                     \
 {                                                                                   \
     YGValue ygval = { 0.0f, YGUnitUndefined };                                      \
@@ -301,24 +309,39 @@ namespace blueprint
             return false;
     }
 
+    const auto yogaNodeFloatPropertySetter(const std::function<void(YGNodeRef, const float)> &setter) {
+      return [=](const auto &v, auto node) {
+          BP_SET_FLEX_FLOAT_PROPERTY(v, setter, node);
+      };
+    }
+
+    // const auto yogaNodeDimensionPropertySetter(const std::function<void(YGNodeRef, const float)> &setter) {
+    //   return [=](const auto &v, auto node) {
+    //       BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(v, setter, node);
+    //   };
+    // }
+
+    // const auto yogaNodeDimensionAutoPropertySetter(const std::function<void(YGNodeRef, const float)> &setter) {
+    //   return [=](const auto &v, auto node) {
+    //       BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(v, setter, node);
+    //   };
+    // }
+
     std::map<juce::Identifier, std::function<void(const juce::var&, YGNodeRef)>> propertySetters {
-        {"direction", [](auto &v, auto node) {
-          try {
-            YGNodeStyleSetDirection(node, ValidDirectionValues.at(v));
-          } catch(const std::out_of_range& e) { /* TODO log something */ }
-        }},
-        {"flex-direction", enumSetter<YGFlexDirection>(YGNodeStyleSetFlexDirection, ValidFlexDirectionValues)}
-      /*
-            juce::Identifier direction       = "direction";
-            juce::Identifier flexDirection   = "flex-direction";
-            juce::Identifier justifyContent  = "justify-content";
-            juce::Identifier alignItems      = "align-items";
-            juce::Identifier alignContent    = "align-content";
-            juce::Identifier alignSelf       = "align-self";
-            juce::Identifier position        = "position";
-            juce::Identifier flexWrap        = "flex-wrap";
-            juce::Identifier overflow        = "overflow";
-      */
+        {"direction", yogaNodeEnumPropertySetter<YGDirection>(YGNodeStyleSetDirection, ValidDirectionValues)},
+        {"flex-direction", yogaNodeEnumPropertySetter<YGFlexDirection>(YGNodeStyleSetFlexDirection, ValidFlexDirectionValues)},
+        {"justify-content", yogaNodeEnumPropertySetter<YGJustify>(YGNodeStyleSetJustifyContent, ValidJustifyValues)},
+        {"align-items", yogaNodeEnumPropertySetter<YGAlign>(YGNodeStyleSetAlignItems, ValidAlignValues)},
+        {"align-content", yogaNodeEnumPropertySetter<YGAlign>(YGNodeStyleSetAlignContent, ValidAlignValues)},
+        {"align-self", yogaNodeEnumPropertySetter<YGAlign>(YGNodeStyleSetAlignSelf, ValidAlignValues)},
+        {"position", yogaNodeEnumPropertySetter<YGPositionType>(YGNodeStyleSetPositionType, ValidPositionTypeValues)},
+        {"flex-wrap", yogaNodeEnumPropertySetter<YGWrap>(YGNodeStyleSetFlexWrap, ValidFlexWrapValues)},
+        {"overflow", yogaNodeEnumPropertySetter<YGOverflow>(YGNodeStyleSetOverflow, ValidOverflowValues)},
+        {"flex", yogaNodeFloatPropertySetter(YGNodeStyleSetFlex)},
+        {"flex-grow", yogaNodeFloatPropertySetter(YGNodeStyleSetFlexGrow)},
+        {"flex-shrink", yogaNodeFloatPropertySetter(YGNodeStyleSetFlexShrink)},
+        {"aspect-ratio", yogaNodeFloatPropertySetter(YGNodeStyleSetAspectRatio)},
+        // {"flex-basis", YOGA_NODE_DIMENSION_AUTO_PROPERTY_SETTER(YGNodeStyleSetFlexBasis)},
     };
 
     //==============================================================================
