@@ -39,14 +39,6 @@ switch (ygvalue.unit)                                   \
         break;                                          \
 }
 
-// #define YOGA_NODE_DIMENSION_AUTO_PROPERTY_SETTER(setter)
-// {
-//     [](const juce::var& value, YGNodeRef node) {
-//         BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, node);
-//     }
-// }
-
-
 #define BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, ...)                     \
 {                                                                                   \
     YGValue ygval = { 0.0f, YGUnitUndefined };                                      \
@@ -64,6 +56,11 @@ switch (ygvalue.unit)                                   \
     BP_SET_YGVALUE_AUTO(ygval, setter, __VA_ARGS__);                                \
 }
 
+#define YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(setter)        \
+  [](const juce::var& value, YGNodeRef node) {                  \
+      BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, node); \
+  }
+
 #define BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, ...)                          \
 {                                                                                   \
     YGValue ygval = { 0.0f, YGUnitUndefined };                                      \
@@ -79,11 +76,21 @@ switch (ygvalue.unit)                                   \
     BP_SET_YGVALUE(ygval, setter, __VA_ARGS__);                                     \
 }
 
+#define YOGA_NODE_DIMENSION_PROPERTY_SETTER(setter)        \
+  [](const juce::var& value, YGNodeRef node) {             \
+      BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, node); \
+  }
+
 #define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node) \
 {                                                       \
     if (value.isDouble())                               \
         setter(node, (float) value);                    \
 }
+
+#define YOGA_NODE_FLOAT_PROPERTY_SETTER(setter)        \
+  [](const juce::var& value, YGNodeRef node) {         \
+      BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node); \
+  }
 
 namespace blueprint
 {
@@ -309,11 +316,7 @@ namespace blueprint
             return false;
     }
 
-    const auto yogaNodeFloatPropertySetter(const std::function<void(YGNodeRef, const float)> &setter) {
-      return [=](const auto &v, auto node) {
-          BP_SET_FLEX_FLOAT_PROPERTY(v, setter, node);
-      };
-    }
+
 
     // const auto yogaNodeDimensionPropertySetter(const std::function<void(YGNodeRef, const float)> &setter) {
     //   return [=](const auto &v, auto node) {
@@ -337,11 +340,17 @@ namespace blueprint
         {"position", yogaNodeEnumPropertySetter<YGPositionType>(YGNodeStyleSetPositionType, ValidPositionTypeValues)},
         {"flex-wrap", yogaNodeEnumPropertySetter<YGWrap>(YGNodeStyleSetFlexWrap, ValidFlexWrapValues)},
         {"overflow", yogaNodeEnumPropertySetter<YGOverflow>(YGNodeStyleSetOverflow, ValidOverflowValues)},
-        {"flex", yogaNodeFloatPropertySetter(YGNodeStyleSetFlex)},
-        {"flex-grow", yogaNodeFloatPropertySetter(YGNodeStyleSetFlexGrow)},
-        {"flex-shrink", yogaNodeFloatPropertySetter(YGNodeStyleSetFlexShrink)},
-        {"aspect-ratio", yogaNodeFloatPropertySetter(YGNodeStyleSetAspectRatio)},
-        // {"flex-basis", YOGA_NODE_DIMENSION_AUTO_PROPERTY_SETTER(YGNodeStyleSetFlexBasis)},
+        {"flex", YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlex)},
+        {"flex-grow", YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexGrow)},
+        {"flex-shrink", YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexShrink)},
+        {"flex-basis", YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetFlexBasis)},
+        {"width", YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetWidth)},
+        {"height", YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetWidth)},
+        {"min-width", YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMinWidth)},
+        {"min-height", YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMinHeight)},
+        {"max-width", YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMaxWidth)},
+        {"max-height", YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMaxHeight)},
+        {"aspect-ratio", YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetAspectRatio)},
     };
 
     //==============================================================================
