@@ -56,13 +56,16 @@ namespace blueprint
         //      then effectively running N property comparisons in the worst case again
         //      in ShadowView::setProperty. We could have ShadowView::setProperty return a boolean
         //      if a property was set succesfully and if false avoid performRootShadowTreeLayout ?
-        if (ShadowView::isLayoutProperty(name))
-        {
-            //TODO: Here is where we could use juce::AsyncUpdater to coalesce layout property
-            //      updates into a single root layout operation.
-            shadow->setProperty(name, value);
+        if(shadow->setProperty(name, value)) {
             performRootShadowTreeLayout();
         }
+        // if (ShadowView::isLayoutProperty(name))
+        // {
+            //TODO: Here is where we could use juce::AsyncUpdater to coalesce layout property
+            //      updates into a single root layout operation.
+            // shadow->setProperty(name, value);
+            // performRootShadowTreeLayout();
+        // }
         else
         {
             view->setProperty(name, value);

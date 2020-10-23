@@ -124,7 +124,7 @@ namespace blueprint
         static bool isLayoutProperty(const juce::Identifier& prop);
 
         /** Set a property on the shadow view. */
-        virtual void setProperty (const juce::Identifier& name, const juce::var& newValue);
+        virtual bool setProperty (const juce::Identifier& name, const juce::var& newValue);
 
         /** Adds a child component behind the existing children. */
         virtual void addChild (ShadowView* childView, int index = -1)

@@ -39,7 +39,7 @@ namespace blueprint
 
         //==============================================================================
         /** Set a property on the shadow view. */
-        void setProperty (const juce::Identifier& name, const juce::var& value) override
+        bool setProperty (const juce::Identifier& name, const juce::var& value) override
         {
             ShadowView::setProperty(name, value);
 
