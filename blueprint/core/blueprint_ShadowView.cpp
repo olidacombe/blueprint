@@ -56,7 +56,7 @@ switch (ygvalue.unit)                                   \
     BP_SET_YGVALUE_AUTO(ygval, setter, __VA_ARGS__);                                \
 }
 
-#define YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(setter)        \
+#define BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(setter)     \
   [](const juce::var& value, YGNodeRef node) {                  \
       BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, node); \
   }
@@ -76,20 +76,27 @@ switch (ygvalue.unit)                                   \
     BP_SET_YGVALUE(ygval, setter, __VA_ARGS__);                                     \
 }
 
-#define YOGA_NODE_DIMENSION_PROPERTY_SETTER(setter)        \
+#define BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(setter)     \
   [](const juce::var& value, YGNodeRef node) {             \
       BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, node); \
   }
 
-#define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node) \
-{                                                       \
-    if (value.isDouble())                               \
-        setter(node, (float) value);                    \
+#define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node)    \
+{                                                          \
+    if (value.isDouble())                                  \
+        setter(node, (float) value);                       \
 }
 
-#define YOGA_NODE_FLOAT_PROPERTY_SETTER(setter)        \
-  [](const juce::var& value, YGNodeRef node) {         \
-      BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node); \
+#define BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(setter)         \
+  [](const juce::var& value, YGNodeRef node) {             \
+      BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node);     \
+  }
+
+#define BP_YOGA_ENUM_PROPERTY_SETTER(setter, enumMap)                \
+  [](const juce::var& value, YGNodeRef node) {                       \
+    try {                                                            \
+      setter(node, enumMap.at(value));                                   \
+    } catch(const std::out_of_range& e) { /* TODO log something */ } \
   }
 
 namespace blueprint
@@ -317,26 +324,26 @@ namespace blueprint
     }
 
     static const std::map<juce::Identifier, std::function<void(const juce::var&, YGNodeRef)>> propertySetters {
-        {"direction", yogaNodeEnumPropertySetter<YGDirection>(YGNodeStyleSetDirection, ValidDirectionValues)},
-        {"flex-direction", yogaNodeEnumPropertySetter<YGFlexDirection>(YGNodeStyleSetFlexDirection, ValidFlexDirectionValues)},
-        {"justify-content", yogaNodeEnumPropertySetter<YGJustify>(YGNodeStyleSetJustifyContent, ValidJustifyValues)},
-        {"align-items", yogaNodeEnumPropertySetter<YGAlign>(YGNodeStyleSetAlignItems, ValidAlignValues)},
-        {"align-content", yogaNodeEnumPropertySetter<YGAlign>(YGNodeStyleSetAlignContent, ValidAlignValues)},
-        {"align-self", yogaNodeEnumPropertySetter<YGAlign>(YGNodeStyleSetAlignSelf, ValidAlignValues)},
-        {"position", yogaNodeEnumPropertySetter<YGPositionType>(YGNodeStyleSetPositionType, ValidPositionTypeValues)},
-        {"flex-wrap", yogaNodeEnumPropertySetter<YGWrap>(YGNodeStyleSetFlexWrap, ValidFlexWrapValues)},
-        {"overflow", yogaNodeEnumPropertySetter<YGOverflow>(YGNodeStyleSetOverflow, ValidOverflowValues)},
-        {"flex", YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlex)},
-        {"flex-grow", YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexGrow)},
-        {"flex-shrink", YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexShrink)},
-        {"flex-basis", YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetFlexBasis)},
-        {"width", YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetWidth)},
-        {"height", YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetHeight)},
-        {"min-width", YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMinWidth)},
-        {"min-height", YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMinHeight)},
-        {"max-width", YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMaxWidth)},
-        {"max-height", YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMaxHeight)},
-        {"aspect-ratio", YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetAspectRatio)},
+        {"direction", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetDirection, ValidDirectionValues)},
+        {"flex-direction", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetFlexDirection, ValidFlexDirectionValues)},
+        {"justify-content", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetJustifyContent, ValidJustifyValues)},
+        {"align-items", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetAlignItems, ValidAlignValues)},
+        {"align-content", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetAlignContent, ValidAlignValues)},
+        {"align-self", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetAlignSelf, ValidAlignValues)},
+        {"position", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetPositionType, ValidPositionTypeValues)},
+        {"flex-wrap", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetFlexWrap, ValidFlexWrapValues)},
+        {"overflow", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetOverflow, ValidOverflowValues)},
+        {"flex", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlex)},
+        {"flex-grow", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexGrow)},
+        {"flex-shrink", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexShrink)},
+        {"flex-basis", BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetFlexBasis)},
+        {"width", BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetWidth)},
+        {"height", BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetHeight)},
+        {"min-width", BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMinWidth)},
+        {"min-height", BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMinHeight)},
+        {"max-width", BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMaxWidth)},
+        {"max-height", BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMaxHeight)},
+        {"aspect-ratio", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetAspectRatio)},
     };
 
     //==============================================================================
@@ -349,130 +356,6 @@ namespace blueprint
           return true;
         } catch(const std::out_of_range& e) {}
 
-/*
-        //==============================================================================
-        // Flex enums
-        if (name == flexProperties.direction)
-        {
-            jassert (validateFlexProperty(newValue, ValidDirectionValues));
-            YGNodeStyleSetDirection(yogaNode, ValidDirectionValues[newValue]);
-            return true;
-        }
-
-        if (name == flexProperties.flexDirection)
-        {
-            jassert (validateFlexProperty(newValue, ValidFlexDirectionValues));
-            YGNodeStyleSetFlexDirection(yogaNode, ValidFlexDirectionValues[newValue]);
-            return true;
-        }
-
-        if (name == flexProperties.justifyContent)
-        {
-            jassert (validateFlexProperty(newValue, ValidJustifyValues));
-            YGNodeStyleSetJustifyContent(yogaNode, ValidJustifyValues[newValue]);
-            return true;
-        }
-
-        if (name == flexProperties.alignItems)
-        {
-            jassert (validateFlexProperty(newValue, ValidAlignValues));
-            YGNodeStyleSetAlignItems(yogaNode, ValidAlignValues[newValue]);
-            return true;
-        }
-
-        if (name == flexProperties.alignContent)
-        {
-            jassert (validateFlexProperty(newValue, ValidAlignValues));
-            YGNodeStyleSetAlignContent(yogaNode, ValidAlignValues[newValue]);
-            return true;
-        }
-
-        if (name == flexProperties.alignSelf)
-        {
-            jassert (validateFlexProperty(newValue, ValidAlignValues));
-            YGNodeStyleSetAlignSelf(yogaNode, ValidAlignValues[newValue]);
-            return true;
-        }
-
-        if (name == flexProperties.position)
-        {
-            jassert (validateFlexProperty(newValue, ValidPositionTypeValues));
-            YGNodeStyleSetPositionType(yogaNode, ValidPositionTypeValues[newValue]);
-            return true;
-        }
-
-        if (name == flexProperties.flexWrap)
-        {
-            jassert (validateFlexProperty(newValue, ValidFlexWrapValues));
-            YGNodeStyleSetFlexWrap(yogaNode, ValidFlexWrapValues[newValue]);
-            return true;
-        }
-
-        if (name == flexProperties.overflow)
-        {
-            jassert (validateFlexProperty(newValue, ValidOverflowValues));
-            YGNodeStyleSetOverflow(yogaNode, ValidOverflowValues[newValue]);
-            return true;
-        }
-
-        //==============================================================================
-        // Flex dimensions
-        if (name == flexProperties.flex)
-        {
-            BP_SET_FLEX_FLOAT_PROPERTY(newValue, YGNodeStyleSetFlex, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.flexGrow)
-        {
-            BP_SET_FLEX_FLOAT_PROPERTY(newValue, YGNodeStyleSetFlexGrow, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.flexShrink)
-        {
-            BP_SET_FLEX_FLOAT_PROPERTY(newValue, YGNodeStyleSetFlexShrink, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.flexBasis)
-        {
-            BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(newValue, YGNodeStyleSetFlexBasis, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.width)
-        {
-            BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(newValue, YGNodeStyleSetWidth, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.height)
-        {
-            BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(newValue, YGNodeStyleSetHeight, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.minWidth)
-        {
-            BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMinWidth, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.minHeight)
-        {
-            BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMinHeight, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.maxWidth)
-        {
-            BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMaxWidth, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.maxHeight)
-        {
-            BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMaxHeight, yogaNode)
-            return true;
-        }
-        if (name == flexProperties.aspectRatio)
-        {
-            BP_SET_FLEX_FLOAT_PROPERTY(newValue, YGNodeStyleSetAspectRatio, yogaNode)
-            return true;
-        }
-*/
         //==============================================================================
         // Margin
         if (isMarginProp(name))
