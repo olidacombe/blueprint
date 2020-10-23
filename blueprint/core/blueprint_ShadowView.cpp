@@ -323,7 +323,21 @@ namespace blueprint
             return false;
     }
 
-    static const std::map<juce::Identifier, std::function<void(const juce::var&, YGNodeRef)>> propertySetters {
+    class PropertySetterMap {
+      typedef juce::Identifier K;
+      typedef juce::var V;
+      typedef std::function<void(const V&, YGNodeRef)> F;
+      std::map<juce::Identifier, std::function<void(const juce::var&, YGNodeRef)>> propertySetters;
+
+      public:
+        PropertySetterMap(std::initializer_list<std::pair<const K, F>> init) : propertySetters(init) {}
+        // TODO cut down indirection?
+        const F& at(const K& k) const {
+          return propertySetters.at(k);
+        }
+    };
+
+    static const PropertySetterMap propertySetters{
         {"direction", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetDirection, ValidDirectionValues)},
         {"flex-direction", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetFlexDirection, ValidFlexDirectionValues)},
         {"justify-content", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetJustifyContent, ValidJustifyValues)},
@@ -375,7 +389,7 @@ namespace blueprint
             if (name == flexProperties.paddingMetaProp)
                 BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetPadding, yogaNode, YGEdgeAll)
             else
-                BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetMargin, yogaNode, ValidEdgeValues[name.toString().replace("padding-", "")])
+                BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetPadding, yogaNode, ValidEdgeValues[name.toString().replace("padding-", "")])
 
             return true;
         }
