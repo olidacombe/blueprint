@@ -59,13 +59,6 @@ namespace blueprint
         if(shadow->setProperty(name, value)) {
             performRootShadowTreeLayout();
         }
-        // if (ShadowView::isLayoutProperty(name))
-        // {
-            //TODO: Here is where we could use juce::AsyncUpdater to coalesce layout property
-            //      updates into a single root layout operation.
-            // shadow->setProperty(name, value);
-            // performRootShadowTreeLayout();
-        // }
         else
         {
             view->setProperty(name, value);
