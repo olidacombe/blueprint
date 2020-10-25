@@ -89,16 +89,6 @@ namespace blueprint
         }
     };
 
-
-    template <typename T>
-    const auto yogaNodeEnumPropertySetter(const std::function<void(YGNodeRef, const T)> &setter, const std::map<juce::String, T> &valueMap) {
-      return [=](const auto &v, auto node) {
-          try {
-            setter(node, valueMap.at(v));
-          } catch(const std::out_of_range& e) { /* TODO log something */ }
-        };
-    }
-
     //==============================================================================
     /** The ShadowView class decouples layout constraints from the actual View instances
         so that our View tree and ShadowView tree might differ (i.e. in the case of raw
