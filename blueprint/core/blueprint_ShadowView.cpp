@@ -92,10 +92,10 @@ switch (ygvalue.unit)                                   \
       BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, node, __VA_ARGS__); \
   }
 
-#define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node)    \
-{                                                          \
-    if (value.isDouble())                                  \
-        setter(node, (float) value);                       \
+#define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node) \
+{                                                       \
+    if (value.isDouble())                               \
+        setter(node, (float) value);                    \
 }
 
 #define BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(setter)         \
