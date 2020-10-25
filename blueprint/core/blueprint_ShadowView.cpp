@@ -115,112 +115,6 @@ namespace blueprint
     namespace
     {
         //==============================================================================
-        struct FlexProperties
-        {
-            // Flex enums
-            juce::Identifier direction       = "direction";
-            juce::Identifier flexDirection   = "flex-direction";
-            juce::Identifier justifyContent  = "justify-content";
-            juce::Identifier alignItems      = "align-items";
-            juce::Identifier alignContent    = "align-content";
-            juce::Identifier alignSelf       = "align-self";
-            juce::Identifier position        = "position";
-            juce::Identifier flexWrap        = "flex-wrap";
-            juce::Identifier overflow        = "overflow";
-
-            // Flex dimensions
-            juce::Identifier flex            = "flex";
-            juce::Identifier flexGrow        = "flex-grow";
-            juce::Identifier flexShrink      = "flex-shrink";
-            juce::Identifier flexBasis       = "flex-basis";
-            juce::Identifier width           = "width";
-            juce::Identifier height          = "height";
-            juce::Identifier minWidth        = "min-width";
-            juce::Identifier minHeight       = "min-height";
-            juce::Identifier maxWidth        = "max-width";
-            juce::Identifier maxHeight       = "max-height";
-            juce::Identifier aspectRatio     = "aspect-ratio";
-
-            // Margin
-            juce::Identifier marginMetaProp   = "margin";
-            juce::Identifier marginLeft       = juce::String("margin-") + YGEdgeToString(YGEdgeLeft);
-            juce::Identifier marginRight      = juce::String("margin-") + YGEdgeToString(YGEdgeRight);
-            juce::Identifier marginTop        = juce::String("margin-") + YGEdgeToString(YGEdgeTop);
-            juce::Identifier marginBottom     = juce::String("margin-") + YGEdgeToString(YGEdgeBottom);
-            juce::Identifier marginStart      = juce::String("margin-") + YGEdgeToString(YGEdgeStart);
-            juce::Identifier marginEnd        = juce::String("margin-") + YGEdgeToString(YGEdgeEnd);
-            juce::Identifier marginHorizontal = juce::String("margin-") + YGEdgeToString(YGEdgeHorizontal);
-            juce::Identifier marginVertical   = juce::String("margin-") + YGEdgeToString(YGEdgeVertical);
-
-            // Padding
-            juce::Identifier paddingMetaProp   = "padding";
-            juce::Identifier paddingLeft       = juce::String("padding-") + YGEdgeToString(YGEdgeLeft);
-            juce::Identifier paddingRight      = juce::String("padding-") + YGEdgeToString(YGEdgeRight);
-            juce::Identifier paddingTop        = juce::String("padding-") + YGEdgeToString(YGEdgeTop);
-            juce::Identifier paddingBottom     = juce::String("padding-") + YGEdgeToString(YGEdgeBottom);
-            juce::Identifier paddingStart      = juce::String("padding-") + YGEdgeToString(YGEdgeStart);
-            juce::Identifier paddingEnd        = juce::String("padding-") + YGEdgeToString(YGEdgeEnd);
-            juce::Identifier paddingHorizontal = juce::String("padding-") + YGEdgeToString(YGEdgeHorizontal);
-            juce::Identifier paddingVertical   = juce::String("padding-") + YGEdgeToString(YGEdgeVertical);
-
-            //Position
-            juce::Identifier positionLeft      = YGEdgeToString(YGEdgeLeft);
-            juce::Identifier positionRight     = YGEdgeToString(YGEdgeRight);
-            juce::Identifier positionTop       = YGEdgeToString(YGEdgeTop);
-            juce::Identifier positionBottom    = YGEdgeToString(YGEdgeBottom);
-            //TODO: Any need for other edge values? i.e. start, end ?
-        } flexProperties;
-
-        bool isMarginProp(const juce::Identifier& prop)
-        {
-            static const std::array<juce::Identifier, 9> marginProps =
-            {
-                flexProperties.marginMetaProp,
-                flexProperties.marginLeft,
-                flexProperties.marginRight,
-                flexProperties.marginTop,
-                flexProperties.marginBottom,
-                flexProperties.marginStart,
-                flexProperties.marginEnd,
-                flexProperties.marginHorizontal,
-                flexProperties.marginVertical
-            };
-
-            return std::find(marginProps.cbegin(), marginProps.cend(), prop) != marginProps.cend();
-        }
-
-        bool isPaddingProp(const juce::Identifier& prop)
-        {
-            static std::array<juce::Identifier, 9> paddingProps =
-            {
-                flexProperties.paddingMetaProp,
-                flexProperties.paddingLeft,
-                flexProperties.paddingRight,
-                flexProperties.paddingTop,
-                flexProperties.paddingBottom,
-                flexProperties.paddingStart,
-                flexProperties.paddingEnd,
-                flexProperties.paddingHorizontal,
-                flexProperties.paddingVertical
-            };
-
-            return std::find(paddingProps.cbegin(), paddingProps.cend(), prop) != paddingProps.cend();
-        }
-
-        bool isPositionProp(const juce::Identifier& prop)
-        {
-            static std::array<juce::Identifier, 4> positionProps =
-            {
-                flexProperties.positionLeft,
-                flexProperties.positionRight,
-                flexProperties.positionTop,
-                flexProperties.positionBottom,
-            };
-
-            return std::find(positionProps.cbegin(), positionProps.cend(), prop) != positionProps.cend();
-        }
-
-        //==============================================================================
         std::map<juce::String, YGDirection> ValidDirectionValues {
             { YGDirectionToString(YGDirectionInherit), YGDirectionInherit },
             { YGDirectionToString(YGDirectionLTR), YGDirectionLTR },
@@ -270,69 +164,9 @@ namespace blueprint
             { YGOverflowToString(YGOverflowScroll), YGOverflowScroll },
         };
 
-        std::map<juce::String, YGEdge> ValidEdgeValues {
-            { YGEdgeToString(YGEdgeLeft), YGEdgeLeft },
-            { YGEdgeToString(YGEdgeTop), YGEdgeTop },
-            { YGEdgeToString(YGEdgeRight), YGEdgeRight },
-            { YGEdgeToString(YGEdgeBottom), YGEdgeBottom },
-            { YGEdgeToString(YGEdgeStart), YGEdgeStart },
-            { YGEdgeToString(YGEdgeEnd), YGEdgeEnd },
-            { YGEdgeToString(YGEdgeHorizontal), YGEdgeHorizontal },
-            { YGEdgeToString(YGEdgeVertical), YGEdgeVertical },
-            { YGEdgeToString(YGEdgeAll), YGEdgeAll },
-        };
-
-        //==============================================================================
-        template<typename T>
-        bool validateFlexProperty (juce::String value, std::map<juce::String, T> validValues)
-        {
-            return std::any_of(validValues.cbegin(), validValues.cend(), [=] (const auto &pair)
-            {
-                return value.equalsIgnoreCase(pair.first);
-            });
-        }
     }
 
     //==============================================================================
-    bool ShadowView::isLayoutProperty(const juce::Identifier& property)
-    {
-        static const std::array<juce::Identifier, 21> properties =
-        {
-            flexProperties.direction,
-            flexProperties.flexDirection,
-            flexProperties.justifyContent,
-            flexProperties.alignItems,
-            flexProperties.alignContent,
-            flexProperties.alignSelf,
-            flexProperties.position,
-            flexProperties.flexWrap,
-            flexProperties.overflow,
-            flexProperties.flex,
-            flexProperties.flexGrow,
-            flexProperties.flexShrink,
-            flexProperties.flexBasis,
-            flexProperties.width,
-            flexProperties.height,
-            flexProperties.minWidth,
-            flexProperties.minHeight,
-            flexProperties.minWidth,
-            flexProperties.maxWidth,
-            flexProperties.maxHeight,
-            flexProperties.aspectRatio
-        };
-
-        if (std::find(properties.cbegin(), properties.cend(), property) != properties.cend())
-            return true;
-        else if (isMarginProp(property))
-            return true;
-        else if (isPaddingProp(property))
-            return true;
-        else if (isPositionProp(property))
-            return true;
-        else
-            return false;
-    }
-
     class PropertySetterMap {
       typedef juce::Identifier K;
       typedef juce::var V;
@@ -408,37 +242,6 @@ namespace blueprint
           return true;
         } catch(const std::out_of_range& e) {}
 
-        //==============================================================================
-        // Margin
-        if (isMarginProp(name))
-        {
-            if (name == flexProperties.marginMetaProp)
-                BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(newValue, YGNodeStyleSetMargin, yogaNode, YGEdgeAll)
-            else
-                BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(newValue, YGNodeStyleSetMargin, yogaNode, ValidEdgeValues[name.toString().replace("margin-", "")])
-
-           return true;
-        }
-
-        //==============================================================================
-        // Padding
-        if (isPaddingProp(name))
-        {
-            if (name == flexProperties.paddingMetaProp)
-                BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetPadding, yogaNode, YGEdgeAll)
-            else
-                BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetPadding, yogaNode, ValidEdgeValues[name.toString().replace("padding-", "")])
-
-            return true;
-        }
-
-        //==============================================================================
-        // Position
-        if (isPositionProp(name))
-        {
-            BP_SET_FLEX_DIMENSION_PROPERTY(newValue, YGNodeStyleSetPosition, yogaNode, ValidEdgeValues[name.toString()]);
-            return true;
-        }
         return false;
     }
 }
