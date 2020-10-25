@@ -39,7 +39,7 @@ namespace blueprint
 
         //==============================================================================
         /** Set a property on the shadow view. */
-        void setProperty (const juce::Identifier& name, const juce::var& value) override
+        bool setProperty (const juce::Identifier& name, const juce::var& value) override
         {
             ShadowView::setProperty(name, value);
 
@@ -52,6 +52,8 @@ namespace blueprint
         /** Override the default ShadowView behavior to explicitly error. */
         void addChild (ShadowView* childView, int index = -1) override
         {
+            juce::ignoreUnused (index);
+
             if (childView != nullptr)
             {
                 throw std::logic_error("TextShadowView cannot take children.");
