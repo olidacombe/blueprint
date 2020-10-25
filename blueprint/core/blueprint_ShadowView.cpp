@@ -171,12 +171,10 @@ namespace blueprint
       typedef juce::Identifier K;
       typedef juce::var V;
       typedef std::function<void(const V&, YGNodeRef)> F;
-      typedef std::initializer_list<std::pair<const juce::String, F>> PrefixedEdgeSetterInitList;
       std::map<juce::Identifier, std::function<void(const juce::var&, YGNodeRef)>> propertySetters;
 
       public:
         PropertySetterMap(std::initializer_list<std::pair<const K, F>> init): propertySetters(init) {}
-        // TODO cut down indirection?
         const F& at(const K& k) const {
           return propertySetters.at(k);
         }
