@@ -94,6 +94,9 @@ namespace blueprint
          */
         virtual void flushViewLayout()
         {
+            view->setFloatBounds(getCachedLayoutBounds());	
+            view->setBounds(getCachedLayoutBounds().toNearestInt());
+
 #ifdef DEBUG
             if (props.contains("debug"))
                 YGNodePrint(yogaNode, (YGPrintOptions) (YGPrintOptionsLayout
