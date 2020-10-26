@@ -559,6 +559,11 @@ namespace blueprint
                 jassert (args.numArguments == 0);
                 return juce::var(getViewId());
             });
+
+            engine.registerNativeMethod("__BlueprintNative__", "resetAfterCommit", [this](const juce::var::NativeFunctionArgs& args) {
+                std::cout << "resetAfterCommit" << std::endl;
+                return juce::var::undefined();
+            });
         }
 
         //==============================================================================

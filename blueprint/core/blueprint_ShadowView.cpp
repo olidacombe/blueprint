@@ -168,7 +168,7 @@ namespace blueprint
 
     //==============================================================================
     class PropertySetterMap {
-      typedef juce::String K;
+      typedef juce::Identifier K;
       typedef juce::var V;
       typedef std::function<void(const V&, YGNodeRef)> F;
       std::map<K, std::function<void(const juce::var&, YGNodeRef)>> propertySetters;

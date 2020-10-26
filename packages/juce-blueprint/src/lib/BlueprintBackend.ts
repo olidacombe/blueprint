@@ -172,4 +172,9 @@ export default {
     return new RawTextViewInstance(id, text);
   },
 
+  resetAfterCommit() {
+    //@ts-ignore
+    return __BlueprintNative__.resetAfterCommit();
+  },
+
 };
