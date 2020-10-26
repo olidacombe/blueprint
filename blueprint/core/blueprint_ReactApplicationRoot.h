@@ -562,6 +562,9 @@ namespace blueprint
 
             engine.registerNativeMethod("__BlueprintNative__", "resetAfterCommit", [this](const juce::var::NativeFunctionArgs& args) {
                 std::cout << "resetAfterCommit" << std::endl;
+                // TODO, something else... traverse for dirty
+                // yoga nodes
+                getViewManager().performRootShadowTreeLayout();
                 return juce::var::undefined();
             });
         }
