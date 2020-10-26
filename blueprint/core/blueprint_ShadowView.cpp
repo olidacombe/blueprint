@@ -175,8 +175,13 @@ namespace blueprint
 
       public:
         PropertySetterMap(std::initializer_list<std::pair<const K, F>> init): propertySetters(init) {}
-        const F& at(const K& k) const {
-          return propertySetters.at(k);
+        bool call(const K& key, const V& v, YGNodeRef node) const {
+          const auto setter = propertySetters.find(key);
+          if(setter == propertySetters.end()) {
+            return false;
+          }
+          setter->second(v, node);
+          return true;
         }
     };
 
@@ -235,11 +240,6 @@ namespace blueprint
     {
         props.set(name, newValue);
 
-        try {
-          (propertySetters.at(name))(newValue, yogaNode);
-          return true;
-        } catch(const std::out_of_range& e) {}
-
-        return false;
+        return propertySetters.call(name, newValue, yogaNode);
     }
 }
