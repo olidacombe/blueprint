@@ -105,7 +105,7 @@ switch (ygvalue.unit)                                   \
 #define BP_YOGA_ENUM_PROPERTY_SETTER(setter, enumMap)                \
   [](const juce::var& value, YGNodeRef node) {                       \
     try {                                                            \
-      setter(node, enumMap.at(value));                                   \
+      setter(node, enumMap.at(value));                               \
     } catch(const std::out_of_range& e) { /* TODO log something */ } \
   }
 
@@ -168,10 +168,10 @@ namespace blueprint
 
     //==============================================================================
     class PropertySetterMap {
-      typedef juce::Identifier K;
+      typedef juce::String K;
       typedef juce::var V;
       typedef std::function<void(const V&, YGNodeRef)> F;
-      std::map<juce::Identifier, std::function<void(const juce::var&, YGNodeRef)>> propertySetters;
+      std::map<K, std::function<void(const juce::var&, YGNodeRef)>> propertySetters;
 
       public:
         PropertySetterMap(std::initializer_list<std::pair<const K, F>> init): propertySetters(init) {}
