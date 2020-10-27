@@ -59,11 +59,13 @@ switch (ygvalue.unit)                                   \
 #define BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(setter)     \
   [](const juce::var& value, YGNodeRef node) {                  \
       BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, node); \
+      return true; \
   }
 
 #define BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER_VARIADIC(setter, ...)    \
   [](const juce::var& value, YGNodeRef node) {                               \
       BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, node, __VA_ARGS__); \
+      return true; \
   }
 
 #define BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, ...)                          \
@@ -84,11 +86,13 @@ switch (ygvalue.unit)                                   \
 #define BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(setter)     \
   [](const juce::var& value, YGNodeRef node) {             \
       BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, node); \
+      return true; \
   }
 
 #define BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(setter, ...)    \
   [](const juce::var& value, YGNodeRef node) {                          \
       BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, node, __VA_ARGS__); \
+      return true; \
   }
 
 #define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node)    \
@@ -100,6 +104,7 @@ switch (ygvalue.unit)                                   \
 #define BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(setter)         \
   [](const juce::var& value, YGNodeRef node) {             \
       BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node);     \
+      return true; \
   }
 
 #define BP_YOGA_ENUM_PROPERTY_SETTER(setter, enumMap)                \
@@ -107,6 +112,7 @@ switch (ygvalue.unit)                                   \
     try {                                                            \
       setter(node, enumMap.at(value));                               \
     } catch(const std::out_of_range& e) { /* TODO log something */ } \
+    return true; \
   }
 
 namespace blueprint
@@ -168,10 +174,10 @@ namespace blueprint
 
     //==============================================================================
     class PropertySetterMap {
-      typedef juce::String K;
+      typedef juce::Identifier K;
       typedef juce::var V;
-      typedef std::function<void(const V&, YGNodeRef)> F;
-      std::map<K, std::function<void(const juce::var&, YGNodeRef)>> propertySetters;
+      typedef std::function<bool(const V&, YGNodeRef)> F;
+      std::map<K, F> propertySetters;
 
       public:
         PropertySetterMap(std::initializer_list<std::pair<const K, F>> init): propertySetters(init) {}
@@ -180,8 +186,7 @@ namespace blueprint
           if(setter == propertySetters.end()) {
             return false;
           }
-          setter->second(v, node);
-          return true;
+          return setter->second(v, node);
         }
     };
 
@@ -195,7 +200,8 @@ namespace blueprint
         {"position", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetPositionType, ValidPositionTypeValues)},
         {"flex-wrap", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetFlexWrap, ValidFlexWrapValues)},
         {"overflow", BP_YOGA_ENUM_PROPERTY_SETTER(YGNodeStyleSetOverflow, ValidOverflowValues)},
-        {"flex", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlex)},
+        {"flex", getYogaNodeFloatSetter(YGNodeStyleSetFlex)},
+        // {"flex", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlex)},
         {"flex-grow", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexGrow)},
         {"flex-shrink", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexShrink)},
         {"flex-basis", BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetFlexBasis)},
