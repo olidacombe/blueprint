@@ -11,9 +11,6 @@
 
 #include "blueprint_View.h"
 
-#define BP_SETTER_PERCENT(setter) setter##Percent
-#define BP_SETTER_AUTO(setter) setter##Auto
-
 namespace blueprint
 {
 
@@ -102,8 +99,8 @@ namespace blueprint
       };
     }
 
-    template <typename Setter, typename ...Args>
-    const auto getYogaNodeDimensionSetter(Setter setter, Args... args) {
+    template <typename Setter, typename SetterPercent, typename ...Args>
+    const auto getYogaNodeDimensionSetter(Setter setter, SetterPercent setterPercent, Args... args) {
       static const auto floatSetter = getYogaNodeFloatSetter(setter);
       return [=](const juce::var& value, YGNodeRef node) {
         if (floatSetter(value, node))
@@ -111,7 +108,7 @@ namespace blueprint
         if (value.isString() && value.toString().trim().contains("%"))
         {
           juce::String strVal = value.toString().retainCharacters("-1234567890.");
-          BP_SETTER_PERCENT(setter)(node, args..., strVal.getFloatValue());
+          setterPercent(node, args..., strVal.getFloatValue());
           return true;
         }
         setter(node, args..., YGUndefined);
@@ -119,12 +116,12 @@ namespace blueprint
       };
     }
 
-    template <typename Setter, typename ...Args>
-    const auto getYogaNodeDimensionAutoSetter(Setter setter, Args... args) {
-      static const auto nonAutoSetter = getYogaNodeDimensionSetter(setter, args...);
+    template <typename Setter, typename SetterPercent, typename SetterAuto, typename ...Args>
+    const auto getYogaNodeDimensionAutoSetter(Setter setter, SetterPercent setterPercent, SetterAuto setterAuto, Args... args) {
+      static const auto nonAutoSetter = getYogaNodeDimensionSetter(setter, setterPercent, args...);
       return [=](const juce::var& value, YGNodeRef node) {
         if (value.isString() && value.toString() == "auto") {
-          BP_SETTER_AUTO(setter)(node, args...);
+          setterAuto(node, args...);
           return true;
         }
         return nonAutoSetter(value, node);
