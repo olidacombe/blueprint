@@ -7,83 +7,6 @@
   ==============================================================================
 */
 
-#define BP_SET_YGVALUE(ygvalue, setter, ...)            \
-switch (ygvalue.unit)                                   \
-{                                                       \
-    case YGUnitAuto:                                    \
-    case YGUnitUndefined:                               \
-        setter(__VA_ARGS__, YGUndefined);               \
-        break;                                          \
-    case YGUnitPoint:                                   \
-        setter(__VA_ARGS__, ygvalue.value);             \
-        break;                                          \
-    case YGUnitPercent:                                 \
-        setter##Percent(__VA_ARGS__, ygvalue.value);    \
-        break;                                          \
-}
-
-#define BP_SET_YGVALUE_AUTO(ygvalue, setter, ...)       \
-switch (ygvalue.unit)                                   \
-{                                                       \
-    case YGUnitAuto:                                    \
-        setter##Auto(__VA_ARGS__);                      \
-        break;                                          \
-    case YGUnitUndefined:                               \
-        setter(__VA_ARGS__, YGUndefined);               \
-        break;                                          \
-    case YGUnitPoint:                                   \
-        setter(__VA_ARGS__, ygvalue.value);             \
-        break;                                          \
-    case YGUnitPercent:                                 \
-        setter##Percent(__VA_ARGS__, ygvalue.value);    \
-        break;                                          \
-}
-
-#define BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, ...)                     \
-{                                                                                   \
-    YGValue ygval = { 0.0f, YGUnitUndefined };                                      \
-                                                                                    \
-    if (value.isDouble())                                                           \
-        ygval = { (float) value, YGUnitPoint };                                     \
-    else if (value.isString() && value.toString() == "auto")                        \
-        ygval = { 0.0f, YGUnitAuto };                                               \
-    else if (value.isString() && value.toString().trim().contains("%"))             \
-    {                                                                               \
-        juce::String strVal = value.toString().retainCharacters("-1234567890.");    \
-        ygval = { strVal.getFloatValue(), YGUnitPercent };                          \
-    }                                                                               \
-                                                                                    \
-    BP_SET_YGVALUE_AUTO(ygval, setter, __VA_ARGS__);                                \
-}
-
-#define BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(setter)     \
-  [](const juce::var& value, YGNodeRef node) {                  \
-      BP_SET_FLEX_DIMENSION_PROPERTY_AUTO(value, setter, node); \
-      return true; \
-  }
-
-#define BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, ...)                          \
-{                                                                                   \
-    YGValue ygval = { 0.0f, YGUnitUndefined };                                      \
-                                                                                    \
-    if (value.isDouble())                                                           \
-        ygval = { (float) value, YGUnitPoint };                                     \
-    else if (value.isString() && value.toString().trim().contains("%"))             \
-    {                                                                               \
-        juce::String strVal = value.toString().retainCharacters("-1234567890.");    \
-        ygval = { strVal.getFloatValue(), YGUnitPercent };                          \
-    }                                                                               \
-                                                                                    \
-    BP_SET_YGVALUE(ygval, setter, __VA_ARGS__);                                     \
-}
-
-
-#define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node)    \
-{                                                          \
-    if (value.isDouble())                                  \
-        setter(node, (float) value);                       \
-}
-
 namespace blueprint
 {
 
@@ -172,9 +95,9 @@ namespace blueprint
         {"flex", getYogaNodeFloatSetter(YGNodeStyleSetFlex)},
         {"flex-grow", getYogaNodeFloatSetter(YGNodeStyleSetFlexGrow)},
         {"flex-shrink", getYogaNodeFloatSetter(YGNodeStyleSetFlexShrink)},
-        {"flex-basis", BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetFlexBasis)},
+        {"flex-basis", getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetFlexBasis))},
         {"width", getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetWidth))},
-        {"height", BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetHeight)},
+        {"height", getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetHeight))},
         {"min-width", getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetMinWidth))},
         {"min-height", getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetMinHeight))},
         {"max-width", getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetMaxWidth))},
