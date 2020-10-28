@@ -104,8 +104,9 @@ namespace blueprint
 
     template <typename Setter, typename SetterPercent, typename ...Args>
     const auto getYogaNodeDimensionSetter(Setter setter, SetterPercent setterPercent, Args... args) {
-      static const auto floatSetter = getYogaNodeFloatSetter(setter, args...);
       return [=](const juce::var& value, YGNodeRef node) {
+        // TODO not static somehow
+        const auto floatSetter = getYogaNodeFloatSetter(setter, args...);
         if (floatSetter(value, node))
           return true;
         if (value.isString() && value.toString().trim().contains("%"))
@@ -121,8 +122,9 @@ namespace blueprint
 
     template <typename Setter, typename SetterPercent, typename SetterAuto, typename ...Args>
     const auto getYogaNodeDimensionAutoSetter(Setter setter, SetterPercent setterPercent, SetterAuto setterAuto, Args... args) {
-      static const auto nonAutoSetter = getYogaNodeDimensionSetter(setter, setterPercent, args...);
       return [=](const juce::var& value, YGNodeRef node) {
+        // TODO not static somehow
+        const auto nonAutoSetter = getYogaNodeDimensionSetter(setter, setterPercent, args...);
         if (value.isString() && value.toString() == "auto") {
           setterAuto(node, args...);
           return true;
