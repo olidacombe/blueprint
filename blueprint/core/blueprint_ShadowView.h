@@ -11,6 +11,9 @@
 
 #include "blueprint_View.h"
 
+#define BP_SPREAD_SETTER_PERCENT(setter) setter, setter##Percent
+#define BP_SPREAD_SETTER_AUTO(setter) BP_SPREAD_SETTER_PERCENT(setter), setter##Auto
+
 namespace blueprint
 {
 
@@ -88,11 +91,11 @@ namespace blueprint
         }
     };
 
-    template <typename Setter>
-    const auto getYogaNodeFloatSetter(Setter setter) {
+    template <typename Setter, typename ...Args>
+    const auto getYogaNodeFloatSetter(Setter setter, Args... args) {
       return [=](const juce::var& value, YGNodeRef node) {
         if(value.isDouble()) {
-          setter(node, (float) value);
+          setter(node, args..., (float) value);
           return true;
         }
         return false;
@@ -101,7 +104,7 @@ namespace blueprint
 
     template <typename Setter, typename SetterPercent, typename ...Args>
     const auto getYogaNodeDimensionSetter(Setter setter, SetterPercent setterPercent, Args... args) {
-      static const auto floatSetter = getYogaNodeFloatSetter(setter);
+      static const auto floatSetter = getYogaNodeFloatSetter(setter, args...);
       return [=](const juce::var& value, YGNodeRef node) {
         if (floatSetter(value, node))
           return true;
@@ -125,6 +128,16 @@ namespace blueprint
           return true;
         }
         return nonAutoSetter(value, node);
+      };
+    }
+
+    template <typename Setter, typename EnumMap>
+    const auto getYogaNodeEnumSetter(Setter setter, EnumMap &map) {
+      return [=](const juce::var& value, YGNodeRef node) {                       \
+        try {
+          setter(node, map.at(value));
+        } catch(const std::out_of_range& e) { /* TODO log something */ }
+        return true;
       };
     }
 
