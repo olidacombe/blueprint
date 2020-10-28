@@ -77,29 +77,12 @@ switch (ygvalue.unit)                                   \
     BP_SET_YGVALUE(ygval, setter, __VA_ARGS__);                                     \
 }
 
-#define BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(setter)     \
-  [](const juce::var& value, YGNodeRef node) {             \
-      BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, node); \
-      return true; \
-  }
-
-#define BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(setter, ...)    \
-  [](const juce::var& value, YGNodeRef node) {                          \
-      BP_SET_FLEX_DIMENSION_PROPERTY(value, setter, node, __VA_ARGS__); \
-      return true; \
-  }
 
 #define BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node)    \
 {                                                          \
     if (value.isDouble())                                  \
         setter(node, (float) value);                       \
 }
-
-#define BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(setter)         \
-  [](const juce::var& value, YGNodeRef node) {             \
-      BP_SET_FLEX_FLOAT_PROPERTY(value, setter, node);     \
-      return true; \
-  }
 
 namespace blueprint
 {
@@ -187,16 +170,16 @@ namespace blueprint
         {"flex-wrap", getYogaNodeEnumSetter(YGNodeStyleSetFlexWrap, ValidFlexWrapValues)},
         {"overflow", getYogaNodeEnumSetter(YGNodeStyleSetOverflow, ValidOverflowValues)},
         {"flex", getYogaNodeFloatSetter(YGNodeStyleSetFlex)},
-        {"flex-grow", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexGrow)},
-        {"flex-shrink", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetFlexShrink)},
+        {"flex-grow", getYogaNodeFloatSetter(YGNodeStyleSetFlexGrow)},
+        {"flex-shrink", getYogaNodeFloatSetter(YGNodeStyleSetFlexShrink)},
         {"flex-basis", BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetFlexBasis)},
         {"width", getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetWidth))},
         {"height", BP_YOGA_NODE_DIMENSION_PROPERTY_AUTO_SETTER(YGNodeStyleSetHeight)},
         {"min-width", getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetMinWidth))},
-        {"min-height", BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMinHeight)},
-        {"max-width", BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMaxWidth)},
-        {"max-height", BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER(YGNodeStyleSetMaxHeight)},
-        {"aspect-ratio", BP_YOGA_NODE_FLOAT_PROPERTY_SETTER(YGNodeStyleSetAspectRatio)},
+        {"min-height", getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetMinHeight))},
+        {"max-width", getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetMaxWidth))},
+        {"max-height", getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetMaxHeight))},
+        {"aspect-ratio", getYogaNodeFloatSetter(YGNodeStyleSetAspectRatio)},
 
         {"margin", getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetMargin), YGEdgeAll)},
         {juce::String("margin-") + YGEdgeToString(YGEdgeLeft), getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetMargin), YGEdgeLeft)},
@@ -209,21 +192,21 @@ namespace blueprint
         {juce::String("margin-") + YGEdgeToString(YGEdgeVertical), getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetMargin), YGEdgeLeft)},
         {juce::String("margin-") + YGEdgeToString(YGEdgeAll), getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetMargin), YGEdgeAll)},
 
-        {"padding", BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeAll)},
-        {juce::String("padding-") + YGEdgeToString(YGEdgeLeft), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeLeft)},
-        {juce::String("padding-") + YGEdgeToString(YGEdgeTop), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeTop)},
-        {juce::String("padding-") + YGEdgeToString(YGEdgeRight), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeRight)},
-        {juce::String("padding-") + YGEdgeToString(YGEdgeBottom), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeBottom)},
-        {juce::String("padding-") + YGEdgeToString(YGEdgeStart), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeStart)},
-        {juce::String("padding-") + YGEdgeToString(YGEdgeEnd), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeEnd)},
-        {juce::String("padding-") + YGEdgeToString(YGEdgeHorizontal), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeHorizontal)},
-        {juce::String("padding-") + YGEdgeToString(YGEdgeVertical), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPadding, YGEdgeLeft)},
+        {"padding", getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeAll)},
+        {juce::String("padding-") + YGEdgeToString(YGEdgeLeft), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeLeft)},
+        {juce::String("padding-") + YGEdgeToString(YGEdgeTop), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeTop)},
+        {juce::String("padding-") + YGEdgeToString(YGEdgeRight), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeRight)},
+        {juce::String("padding-") + YGEdgeToString(YGEdgeBottom), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeBottom)},
+        {juce::String("padding-") + YGEdgeToString(YGEdgeStart), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeStart)},
+        {juce::String("padding-") + YGEdgeToString(YGEdgeEnd), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeEnd)},
+        {juce::String("padding-") + YGEdgeToString(YGEdgeHorizontal), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeHorizontal)},
+        {juce::String("padding-") + YGEdgeToString(YGEdgeVertical), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPadding), YGEdgeLeft)},
         {juce::String("margin-") + YGEdgeToString(YGEdgeAll), getYogaNodeDimensionAutoSetter(BP_SPREAD_SETTER_AUTO(YGNodeStyleSetMargin), YGEdgeAll)},
         
-        {YGEdgeToString(YGEdgeLeft), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPosition, YGEdgeLeft)},
-        {YGEdgeToString(YGEdgeTop), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPosition, YGEdgeTop)},
-        {YGEdgeToString(YGEdgeRight), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPosition, YGEdgeRight)},
-        {YGEdgeToString(YGEdgeBottom), BP_YOGA_NODE_DIMENSION_PROPERTY_SETTER_VARIADIC(YGNodeStyleSetPosition, YGEdgeBottom)},
+        {YGEdgeToString(YGEdgeLeft), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPosition), YGEdgeLeft)},
+        {YGEdgeToString(YGEdgeTop), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPosition), YGEdgeTop)},
+        {YGEdgeToString(YGEdgeRight), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPosition), YGEdgeRight)},
+        {YGEdgeToString(YGEdgeBottom), getYogaNodeDimensionSetter(BP_SPREAD_SETTER_PERCENT(YGNodeStyleSetPosition), YGEdgeBottom)},
     };
 
     //==============================================================================
