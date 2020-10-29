@@ -1,6 +1,6 @@
 import { getMacroCalls, degToNumber } from "./util";
 
-type TPropertyAssignment = [property: string, value: string | number];
+type TPropertyAssignment = [string, string | number];
 
 export default function (value: string): TPropertyAssignment[] {
   const calls = getMacroCalls(value, ["rotate"]);
