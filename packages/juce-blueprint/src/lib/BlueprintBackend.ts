@@ -104,10 +104,9 @@ export class ViewInstance {
     const macroPropertyGetter = macroPropertyGetters[propKey];
     if(macroPropertyGetter) {
       for(const [k, v] of macroPropertyGetter(value))
-        // TODO make it hard to accidentally define a getter which
-        // returns the same key that led to it getting called
-        // otherwise this could spin
-        this.setProperty(k, v);
+        // should never happen, but let's not allow a spin
+        if(k!==propKey)
+          this.setProperty(k, v);
     }
 
     if (SyntheticEvents.isMouseEventHandler(propKey)) {
