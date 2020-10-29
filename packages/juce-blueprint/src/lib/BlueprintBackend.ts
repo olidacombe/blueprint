@@ -2,6 +2,7 @@ import SyntheticEvents,
        { SyntheticEvent, 
          SyntheticMouseEvent, 
          SyntheticKeyboardEvent } from './SyntheticEvents' 
+import { transformPropertiesGetter } from './MacroProperties';
 
 /* global __BlueprintNative__:false */
 
@@ -32,6 +33,10 @@ if (typeof window !== 'undefined') {
 }
 
 function noop(): void {}
+
+const macroPropertyGetters = {
+  transform: transformPropertiesGetter
+};
 
 export class ViewInstance {
   private _id: string;
@@ -95,6 +100,15 @@ export class ViewInstance {
     this._props = Object.assign({}, this._props, {
       [propKey]: value,
     });
+
+    const macroPropertyGetter = macroPropertyGetters[propKey];
+    if(macroPropertyGetter) {
+      for(const [k, v] of macroPropertyGetter(value))
+        // TODO make it hard to accidentally define a getter which
+        // returns the same key that led to it getting called
+        // otherwise this could spin
+        this.setProperty(k, v);
+    }
 
     if (SyntheticEvents.isMouseEventHandler(propKey)) {
       //@ts-ignore
