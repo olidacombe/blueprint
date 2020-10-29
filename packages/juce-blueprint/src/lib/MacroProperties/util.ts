@@ -1,7 +1,4 @@
-type TMacroCall = {
-  macro: string;
-  args: string[];
-};
+import { TMacroCall } from "./types";
 
 // don't try too hard, we don't need to support qouted strings containing commas etc.
 export const splitArgs = (a: string) => a.trim().split(/\s*,\s*/);
@@ -13,7 +10,7 @@ export const getMacroCalls = (
   const macroMatcher = String.raw`(${
     candidates ? `${candidates.join("|")}` : "[a-zA-Z0-9]+"
   })\(([^)]*)\)`;
-  const r = new RegExp(macroMatcher, 'g');
+  const r = new RegExp(macroMatcher, "g");
   // the rest would be trivial with matchAll
   // which duktape sadly lacks
   const matches = s.match(r);

@@ -1,6 +1,5 @@
+import { TPropertyAssignment } from "./types";
 import { getMacroCalls } from "./util";
-
-type TPropertyAssignment = [string, string | number];
 
 const rotateMultipliers = {
   deg: Math.PI / 180.0,
