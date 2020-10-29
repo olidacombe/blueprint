@@ -14,13 +14,15 @@ export const getMacroCalls = (
     candidates ? `${candidates.join("|")}` : "[a-zA-Z0-9]+"
   })\(([^)]*)\)`;
   const r = new RegExp(macroMatcher);
-  // const r = new RegExp(String.raw`(bla)(ha)`);
   // ideally named capture groups would get typed, some day
   // @ts-ignore
   // return Array.from(s.matchAll(r), ([, macro, args]) => ({
   //   macro,
   //   args: splitArgs(args),
   // }));
+
+  // until I sort out the lack of matchAll
+  // in duktape, this proves the rest works a bit
   const [, macro, args] = r.exec(s);
   return [
     {
