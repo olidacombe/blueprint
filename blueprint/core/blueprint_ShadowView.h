@@ -11,6 +11,8 @@
 
 #include "blueprint_View.h"
 
+#define BP_SPREAD_SETTER_PERCENT(setter) setter, setter##Percent
+#define BP_SPREAD_SETTER_AUTO(setter) BP_SPREAD_SETTER_PERCENT(setter), setter##Auto
 
 namespace blueprint
 {
@@ -88,6 +90,54 @@ namespace blueprint
             });
         }
     };
+
+    template <typename Setter, typename ...Args>
+    const auto getYogaNodeFloatSetter(Setter setter, Args... args) {
+      return [=](const juce::var& value, YGNodeRef node) {
+        if(value.isDouble()) {
+          setter(node, args..., (float) value);
+          return true;
+        }
+        return false;
+      };
+    }
+
+    template <typename Setter, typename SetterPercent, typename ...Args>
+    const auto getYogaNodeDimensionSetter(Setter setter, SetterPercent setterPercent, Args... args) {
+      return [=, floatSetter = getYogaNodeFloatSetter(setter, args...)](const juce::var& value, YGNodeRef node) {
+        if (floatSetter(value, node))
+          return true;
+        if (value.isString() && value.toString().trim().contains("%"))
+        {
+          juce::String strVal = value.toString().retainCharacters("-1234567890.");
+          setterPercent(node, args..., strVal.getFloatValue());
+          return true;
+        }
+        setter(node, args..., YGUndefined);
+        return true;
+      };
+    }
+
+    template <typename Setter, typename SetterPercent, typename SetterAuto, typename ...Args>
+    const auto getYogaNodeDimensionAutoSetter(Setter setter, SetterPercent setterPercent, SetterAuto setterAuto, Args... args) {
+      return [=, nonAutoSetter = getYogaNodeDimensionSetter(setter, setterPercent, args...)](const juce::var& value, YGNodeRef node) {
+        if (value.isString() && value.toString() == "auto") {
+          setterAuto(node, args...);
+          return true;
+        }
+        return nonAutoSetter(value, node);
+      };
+    }
+
+    template <typename Setter, typename EnumMap>
+    const auto getYogaNodeEnumSetter(Setter setter, EnumMap &map) {
+      return [=](const juce::var& value, YGNodeRef node) {                       \
+        try {
+          setter(node, map.at(value));
+        } catch(const std::out_of_range& e) { /* TODO log something */ }
+        return true;
+      };
+    }
 
     //==============================================================================
     /** The ShadowView class decouples layout constraints from the actual View instances
