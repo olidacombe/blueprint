@@ -1,1 +1,1 @@
-export { default as trasformPropertiesGetter } from './Transform';
+export { default as transformPropertiesGetter } from "./Transform";
