@@ -1,6 +1,6 @@
 import { TPropertyAssignment } from "./types";
 import { getMacroCalls } from "./util";
-import { add, identity, matrix, multiply, rotationMatrix } from 'mathjs';
+import { add, flatten, identity, matrix, multiply, rotationMatrix } from 'mathjs';
 
 const rotateMultipliers = {
   deg: Math.PI / 180.0,
@@ -52,6 +52,8 @@ const transformFunctionMap = {
   translate
 }
 
+const matrixToArray = m => flatten(m)._data;
+
 export default function (value: string): TPropertyAssignment[] {
   const calls = getMacroCalls(value, Object.keys(transformFunctionMap));
   // TODO check we're accumulating calls in the right order, otherwise reverse
@@ -61,5 +63,5 @@ export default function (value: string): TPropertyAssignment[] {
     return transform ? multiply(transform, acc) : acc;
   }, getIdentityTransform());
 
-  return [['transform-matrix', transformMatrix]];
+  return [['transform-matrix', JSON.stringify(matrixToArray(transformMatrix))]];
 }
