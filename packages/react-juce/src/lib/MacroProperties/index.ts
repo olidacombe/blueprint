@@ -1,1 +1,5 @@
-export { default as transformPropertiesGetter } from "./Transform";
+import transformPropertiesGetter from "./Transform";
+
+export const macroPropertyGetters = {
+  transform: transformPropertiesGetter
+};

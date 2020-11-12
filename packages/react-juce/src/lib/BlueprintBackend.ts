@@ -1,8 +1,10 @@
-import SyntheticEvents, 
-       { SyntheticEvent, 
-         SyntheticMouseEvent, 
-         SyntheticKeyboardEvent } from './SyntheticEvents' 
-import { transformPropertiesGetter } from './MacroProperties';
+import SyntheticEvents,
+{
+  SyntheticEvent,
+  SyntheticMouseEvent,
+  SyntheticKeyboardEvent
+} from './SyntheticEvents'
+import { macroPropertyGetters } from './MacroProperties';
 
 /* global __BlueprintNative__:false */
 
@@ -32,11 +34,7 @@ if (typeof window !== 'undefined') {
   };
 }
 
-function noop(): void {}
-
-const macroPropertyGetters = {
-  transform: transformPropertiesGetter
-};
+function noop(): void { }
 
 export class ViewInstance {
   private _id: string;
@@ -101,12 +99,11 @@ export class ViewInstance {
       [propKey]: value,
     });
 
-    const macroPropertyGetter = macroPropertyGetters[propKey];
-    if(macroPropertyGetter) {
-      for(const [k, v] of macroPropertyGetter(value))
-        // should never happen, but let's not allow a spin
-        if(k!==propKey)
-          this.setProperty(k, v);
+    if (macroPropertyGetters.hasOwnProperty(propKey)) {
+      for (const [k, v] of macroPropertyGetters[propKey](value))
+        //@ts-ignore
+        __BlueprintNative__.setViewProperty(this._id, k, v);
+      return;
     }
 
     if (SyntheticEvents.isMouseEventHandler(propKey)) {
