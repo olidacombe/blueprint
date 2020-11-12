@@ -1,6 +1,6 @@
 import { TPropertyAssignment } from "./types";
 import { getMacroCalls } from "./util";
-import { add, flatten, identity, matrix, multiply, rotationMatrix } from 'mathjs';
+import { add, flatten, identity, matrix, multiply, resize, rotationMatrix } from 'mathjs';
 
 const rotateMultipliers = {
   deg: Math.PI / 180.0,
@@ -28,29 +28,26 @@ const toRadians = (arg: string) => {
 
 const argsToRadians = f => (...args) => f(...args.map(a => toRadians(a)));
 
-const oneInTheCorner = matrix([
+const twoOnesInTheCorner = matrix([
   [0, 0, 0, 0],
   [0, 0, 0, 0],
-  [0, 0, 0, 0],
+  [0, 0, 1, 0],
   [0, 0, 0, 1]
 ]);
-const toHomogeneous = m => add(m, oneInTheCorner);
 
-const rotate = argsToRadians((theta) => toHomogeneous(rotationMatrix(theta)));
-const translate = (dx = 0, dy = 0, dz = 0) => toHomogeneous(
-  matrix([
-    [1, 0, 0, dx],
-    [0, 1, 0, dy],
-    [0, 0, 1, dz],
-    [0, 0, 0, 1]
-  ])
-);
+const rotate = argsToRadians((theta = '0') => add(twoOnesInTheCorner, resize(rotationMatrix(theta), [4, 4])));
+const translate = (dx = 0, dy = 0, dz = 0) => matrix([
+  [1, 0, 0, dx],
+  [0, 1, 0, dy],
+  [0, 0, 1, dz],
+  [0, 0, 0, 1]
+]);
 
 const transformFunctionMap = {
   rotate,
   rotateZ: rotate,
   translate
-}
+};
 
 const matrixToArray = m => flatten(m)._data;
 
@@ -58,7 +55,7 @@ export default function (value: string): TPropertyAssignment[] {
   const calls = getMacroCalls(value, Object.keys(transformFunctionMap));
   // TODO check we're accumulating calls in the right order, otherwise reverse
   //@ts-ignore
-  const transformMatrix = calls.reduce((acc, [f, args]) => {
+  const transformMatrix = calls.reduce((acc, { macro: f, args }) => {
     const transform = transformFunctionMap[f](...args);
     return transform ? multiply(transform, acc) : acc;
   }, getIdentityTransform());
