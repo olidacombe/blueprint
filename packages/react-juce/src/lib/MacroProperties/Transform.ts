@@ -1,6 +1,6 @@
 import { TPropertyAssignment } from "./types";
 import { getMacroCalls } from "./util";
-import { add, flatten, identity, matrix, multiply, resize, rotationMatrix } from 'mathjs';
+import matrix from 'matrix-js';
 
 const rotateMultipliers = {
   deg: Math.PI / 180.0,
@@ -12,9 +12,6 @@ const rotateMultipliers = {
 const angleUnitMatcher = new RegExp(
   `(-?[0-9]*\.?[0-9]+)(${Object.keys(rotateMultipliers).join("|")}|)$`
 );
-
-// this may be overkill, mathjs ops seem immutable
-const getIdentityTransform = () => identity(4);
 
 const toRadians = (arg: string) => {
   // @ts-ignore
@@ -28,14 +25,20 @@ const toRadians = (arg: string) => {
 
 const argsToRadians = f => (...args) => f(...args.map(a => toRadians(a)));
 
-const twoOnesInTheCorner = matrix([
-  [0, 0, 0, 0],
-  [0, 0, 0, 0],
+const identity = matrix([
+  [1, 0, 0, 0],
+  [0, 1, 0, 0],
   [0, 0, 1, 0],
-  [0, 0, 0, 1]
+  [0, 0, 0, 1],
 ]);
 
-const rotate = argsToRadians((theta = '0') => add(twoOnesInTheCorner, resize(rotationMatrix(theta), [4, 4])));
+const rotate = argsToRadians((theta = 0) => matrix([
+  [Math.cos(theta), -Math.sin(theta), 0, 0],
+  [Math.sin(theta), Math.cos(theta), 0, 0],
+  [0, 0, 1, 0],
+  [0, 0, 0, 1]
+]));
+
 const translate = (dx = 0, dy = 0, dz = 0) => matrix([
   [1, 0, 0, dx],
   [0, 1, 0, dy],
@@ -49,7 +52,7 @@ const transformFunctionMap = {
   translate
 };
 
-const matrixToArray = m => flatten(m)._data;
+const matrixToArray = m => m.reduce((acc, v) => [...acc, ...v]);
 
 export default function (value: string): TPropertyAssignment[] {
   const calls = getMacroCalls(value, Object.keys(transformFunctionMap));
@@ -57,8 +60,7 @@ export default function (value: string): TPropertyAssignment[] {
   //@ts-ignore
   const transformMatrix = calls.reduce((acc, { macro: f, args }) => {
     const transform = transformFunctionMap[f](...args);
-    return transform ? multiply(transform, acc) : acc;
-  }, getIdentityTransform());
-
+    return transform.mul(acc);
+  }, identity);
   return [['transform-matrix', matrixToArray(transformMatrix)]];
 }
