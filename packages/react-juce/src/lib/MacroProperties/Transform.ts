@@ -60,5 +60,5 @@ export default function (value: string): TPropertyAssignment[] {
     return transform ? multiply(transform, acc) : acc;
   }, getIdentityTransform());
 
-  return [['transform-matrix', JSON.stringify(matrixToArray(transformMatrix))]];
+  return [['transform-matrix', matrixToArray(transformMatrix)]];
 }
