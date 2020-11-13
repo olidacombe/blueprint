@@ -98,31 +98,24 @@ namespace blueprint
         cachedFloatBounds = bounds;
 
         // Update transforms
-        /*
-        if (props.contains("transform-rotate"))
-        {
-            auto cxRelParent = cachedFloatBounds.getX() + cachedFloatBounds.getWidth() * 0.5f;
-            auto cyRelParent = cachedFloatBounds.getY() + cachedFloatBounds.getHeight() * 0.5f;
-            auto angle = static_cast<float> (props["transform-rotate"]);
-
-            setTransform(juce::AffineTransform::rotation(angle, cxRelParent, cyRelParent));
-        }
-        */
         if (props.contains("transform-matrix"))
         {
             const juce::var& matrix = props["transform-matrix"];
             if(matrix.isArray() && matrix.getArray()->size() >= 16) {
               const juce::Array<juce::var> &m = *matrix.getArray();
 
-              // TODO looks like (from the fact ::rotation(angle, X, Y) was used before)
-              // we want to translate midpoint to origin, apply the below matrix,
-              // then untranslate
+              auto cx = cachedFloatBounds.getX() + cachedFloatBounds.getWidth() * 0.5f;
+              auto cy = cachedFloatBounds.getY() + cachedFloatBounds.getHeight() * 0.5f;
 
+              const auto translateToOrigin = juce::AffineTransform::translation(cx * -1.0f, cy * -1.0f);
               // set 2d homogeneous matrix using 3d homogeneous matrix
-              setTransform(juce::AffineTransform(
+              const auto transform = juce::AffineTransform(
                 m[0], m[1], m[3],
                 m[4], m[5], m[7]
-              ));
+              );
+              const auto translateFromOrigin = juce::AffineTransform::translation(cx, cy);
+
+              setTransform(translateToOrigin.followedBy(transform).followedBy(translateFromOrigin));
             }
         }
     }
