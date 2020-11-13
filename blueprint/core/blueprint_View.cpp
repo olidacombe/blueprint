@@ -104,16 +104,16 @@ namespace blueprint
             if(matrix.isArray() && matrix.getArray()->size() >= 16) {
               const juce::Array<juce::var> &m = *matrix.getArray();
 
-              auto cx = cachedFloatBounds.getX() + cachedFloatBounds.getWidth() * 0.5f;
-              auto cy = cachedFloatBounds.getY() + cachedFloatBounds.getHeight() * 0.5f;
+              auto cxRelParent = cachedFloatBounds.getX() + cachedFloatBounds.getWidth() * 0.5f;
+              auto cyRelParent = cachedFloatBounds.getY() + cachedFloatBounds.getHeight() * 0.5f;
 
-              const auto translateToOrigin = juce::AffineTransform::translation(cx * -1.0f, cy * -1.0f);
+              const auto translateToOrigin = juce::AffineTransform::translation(cxRelParent * -1.0f, cyRelParent * -1.0f);
               // set 2d homogeneous matrix using 3d homogeneous matrix
               const auto transform = juce::AffineTransform(
                 m[0], m[1], m[3],
                 m[4], m[5], m[7]
               );
-              const auto translateFromOrigin = juce::AffineTransform::translation(cx, cy);
+              const auto translateFromOrigin = juce::AffineTransform::translation(cxRelParent, cyRelParent);
 
               setTransform(translateToOrigin.followedBy(transform).followedBy(translateFromOrigin));
             }
