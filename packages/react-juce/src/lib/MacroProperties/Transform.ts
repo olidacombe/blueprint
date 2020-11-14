@@ -32,12 +32,16 @@ const identity = matrix([
   [0, 0, 0, 1],
 ]);
 
-const rotate = argsToRadians((theta = 0) => matrix([
-  [Math.cos(theta), -Math.sin(theta), 0, 0],
-  [Math.sin(theta), Math.cos(theta), 0, 0],
-  [0, 0, 1, 0],
-  [0, 0, 0, 1]
-]));
+const rotate = argsToRadians((theta = 0) => {
+  const sinTheta = Math.sin(theta);
+  const cosTheta = Math.cos(theta);
+  return matrix([
+    [cosTheta, -1 * sinTheta, 0, 0],
+    [sinTheta, cosTheta, 0, 0],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1]
+  ])
+});
 
 const translate = (dx = 0, dy = 0, dz = 0) => matrix([
   [1, 0, 0, dx],
@@ -60,7 +64,7 @@ export default function (value: string): TPropertyAssignment[] {
   //@ts-ignore
   const transformMatrix = calls.reduce((acc, { macro: f, args }) => {
     const transform = transformFunctionMap[f](...args);
-    return transform.mul(acc);
+    return transform.prod(acc);
   }, identity);
   return [['transform-matrix', matrixToArray(transformMatrix)]];
 }
