@@ -141,7 +141,7 @@ class Slider extends Component {
   }
 
   render() {
-    const {value, width, height} = this.state;
+    const { value, width, height } = this.state;
 
     return (
       <View
@@ -166,7 +166,7 @@ const styles = {
     'position': 'absolute',
     'left': 0.0,
     'top': 0.0,
-    transform: `rotate(225deg)`
+    transform: 'rotate(225deg)'
   },
 };
 
