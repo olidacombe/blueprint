@@ -7,6 +7,7 @@
   ==============================================================================
 */
 
+#include "../JuceLibraryCode/JuceHeader.h"
 
 class EcmascriptEngineEvaluateTest  : public juce::UnitTest
 {
