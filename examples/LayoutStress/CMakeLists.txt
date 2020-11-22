@@ -16,6 +16,7 @@ target_compile_definitions(${PROJECT_NAME}
     PUBLIC
     JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
+    JUCE_DEBUG=1
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
