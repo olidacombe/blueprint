@@ -29,10 +29,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     juce::juce_graphics
     juce::juce_gui_basics
     blueprint
-
-    # TODO not strictly require these
-    # for non-plugins?
-    juce::juce_audio_basics
-    juce::juce_audio_devices
-    juce::juce_audio_processors
-    )
+)

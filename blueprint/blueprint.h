@@ -24,7 +24,9 @@
 #include <juce_core/juce_core.h>
 #include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <juce_audio_processors/juce_audio_processors.h>
+#if JucePlugin_PluginCode
+  #include<juce_audio_processors/juce_audio_processors.h>
+#endif
 
 #include "yoga/yoga/YGMacros.h"
 
@@ -93,7 +95,9 @@
 #include "core/blueprint_AppHarness.h"
 #include "core/blueprint_EcmascriptEngine.h"
 #include "core/blueprint_CanvasView.h"
-#include "core/blueprint_GenericEditor.h"
+#if JucePlugin_PluginCode
+  #include "core/blueprint_GenericEditor.h"
+#endif
 #include "core/blueprint_ImageView.h"
 #include "core/blueprint_FileWatcher.h"
 #include "core/blueprint_RawTextView.h"
