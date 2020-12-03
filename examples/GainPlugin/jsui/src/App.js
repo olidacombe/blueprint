@@ -32,7 +32,17 @@ class App extends Component {
     this.state = {
       muted: false
     }
+
+    this.timer = null;
   }
+
+  componentDidMount() {
+    this.timer = setTimeout(()=>console.log('hello timeout'), 1000);
+  }
+
+  // componentWillUnmount() {
+    // clearTimeout(this.timer);
+  // }
 
   _onMuteToggled(toggled) {
     this.setState({

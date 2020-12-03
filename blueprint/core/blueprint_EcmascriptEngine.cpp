@@ -163,6 +163,8 @@ namespace blueprint
             duk_push_pointer(ctxRawPtr, (void *) this);
             duk_put_prop_string(ctxRawPtr, -2, DUK_HIDDEN_SYMBOL("__EcmascriptEngineInstance__"));
             duk_pop(ctxRawPtr);
+
+            registerTimerGlobals();
         }
 
         //==============================================================================
@@ -233,6 +235,19 @@ namespace blueprint
             duk_pop(ctxRawPtr);
         }
 
+        // TODO maybe
+        /*
+        void registerNativeMethod (const juce::String& name, juce::var::NativeFunction fn)
+        {
+            registerNativeProperty(name, juce::var(fn));
+        }
+
+        void registerNativeMethod (const juce::String& target, const juce::String& name, juce::var::NativeFunction fn)
+        {
+            registerNativeProperty(target, name, juce::var(fn));
+        }
+        */
+
         //==============================================================================
         juce::var invoke (const juce::String& name, const std::vector<juce::var>& vargs)
         {
@@ -266,6 +281,23 @@ namespace blueprint
             return result;
         }
 
+        void registerTimerGlobals()
+        {
+          const auto setTimeout = juce::var([](void* stash, const juce::var::NativeFunctionArgs& args) {
+            DBG("setTimeout");
+            return juce::var(1);
+          });
+          const auto isMethod = setTimeout.isMethod();
+          registerNativeProperty("setTimeout", juce::var([](void* stash, const juce::var::NativeFunctionArgs& args) {
+            DBG("setTimeout");
+            return juce::var(1);
+          }));
+          // registerNativeProperty("clearTimeout", juce::var([](void* stash, const juce::var::NativeFunctionArgs& args) {
+          //   DBG("clearTimeout");
+          //   return juce::var(1);
+          // }));
+        }
+
         void reset()
         {
             auto* ctxRawPtr = dukContext.get();
@@ -278,6 +310,8 @@ namespace blueprint
             // Clear the LambdaHelper release pool as duktape does not call object
             // finalizers in the event of an evaluation error or duk_pcall failure.
             persistentReleasePool.clear();
+
+            registerTimerGlobals();
         }
 
         //==============================================================================
@@ -717,11 +751,15 @@ namespace blueprint
     //==============================================================================
     void EcmascriptEngine::registerNativeMethod (const juce::String& name, juce::var::NativeFunction fn)
     {
+        // TODO maybe
+        // mPimpl->registerNativeMethod(name, fn);
         registerNativeProperty(name, juce::var(fn));
     }
 
     void EcmascriptEngine::registerNativeMethod (const juce::String& target, const juce::String& name, juce::var::NativeFunction fn)
     {
+        // TODO maybe
+        // mPimpl->registerNativeMethod(target, name, fn);
         registerNativeProperty(target, name, juce::var(fn));
     }
 

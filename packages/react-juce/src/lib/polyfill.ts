@@ -70,7 +70,7 @@ function __setInterval__ (cb, wait, c, d, e, f, g) {
 
 /** Attach our polyfills */
 global.__schedulerInterrupt__ = __schedulerInterrupt__;
-global.setTimeout = __setTimeout__;
+// global.setTimeout = __setTimeout__;
 global.setInterval = __setInterval__;
 
 // Typescript hack
