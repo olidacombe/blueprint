@@ -283,19 +283,20 @@ namespace blueprint
 
         void registerTimerGlobals()
         {
-          const auto setTimeout = juce::var([](void* stash, const juce::var::NativeFunctionArgs& args) {
+          const juce::var setTimeout = juce::var::NativeFunction([](const juce::var::NativeFunctionArgs& args) {
             DBG("setTimeout");
+            const auto f = args.arguments->getNativeFunction();
+            const auto timeout = *(args.arguments+1);
+            std::invoke(f, juce::var::NativeFunctionArgs(juce::var(), args.arguments + 2, args.numArguments - 2));
             return juce::var(1);
           });
           const auto isMethod = setTimeout.isMethod();
-          registerNativeProperty("setTimeout", juce::var([](void* stash, const juce::var::NativeFunctionArgs& args) {
-            DBG("setTimeout");
+          registerNativeProperty("setTimeout", setTimeout);
+
+          registerNativeProperty("clearTimeout", juce::var(juce::var::NativeFunction([](const juce::var::NativeFunctionArgs& args) {
+            DBG("clearTimeout");
             return juce::var(1);
-          }));
-          // registerNativeProperty("clearTimeout", juce::var([](void* stash, const juce::var::NativeFunctionArgs& args) {
-          //   DBG("clearTimeout");
-          //   return juce::var(1);
-          // }));
+          })));
         }
 
         void reset()
