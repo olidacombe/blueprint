@@ -281,12 +281,81 @@ namespace blueprint
             return result;
         }
 
+        class TimeoutFunctionManager
+        {
+          struct TimeoutFunction
+          {
+            TimeoutFunction(int _id, const juce::var::NativeFunctionArgs& _args, _recurring=false)
+            : id(_id), recurring(_recurring), args(juce::var(), _args.arguments + 2, _args.numArguments - 2);
+            {
+              // TODO some validation
+              f = _args.arguments->getNativeFunction();
+              intervalMilliseconds = int(*(_args.arguments+1));
+            }
+
+            ~TimeoutFunction() {}
+
+            void call()
+            {
+              std::invoke(f, args);
+            }
+
+            // id may be handy when pushing references to duk heap
+            // to prevent arguments getting GCd
+            int id;
+            int intervalMilliseconds;
+            bool recurring;
+
+            private:
+              juce::var::NativeFunction f;
+              juce::var::NativeFunctionArgs args;
+          };
+
+          void call(int id)
+          {
+            const auto f = timeoutFunctions.find(id);
+            if(f == timeoutFunctions.cend()) return;
+            f->second.call();
+          }
+
+          void clear(int id)
+          {
+            const auto f = timeoutFunctions.find(id);
+            if(f != timeoutFunctions.cend()) timeoutFunctions.erase(f);
+          }
+
+          int newTimeout(const juce::var::NativeFunctionArgs& args, recurring=false)
+          {
+            const auto id = reserveId();
+            const TimeoutFunction f(id, args, recurring);
+            timeoutFunctions[id] = std::move(f);
+            return id;
+          }
+
+          int newInterval(const juce::var::NativeFunctionArgs& args)
+          {
+            return newTimeout(args, true);
+          }
+
+          private:
+            int reserveId()
+            {
+              // TODO something smarter with a release pool
+              static int id = 0;
+              return id++;
+            }
+
+            std::map<int, TimeoutFunction> timeoutFunctions;
+        };
+
+        TimeoutFunctionManager timeoutsManager;
+
         void registerTimerGlobals()
         {
           const juce::var setTimeout = juce::var::NativeFunction([](const juce::var::NativeFunctionArgs& args) {
             DBG("setTimeout");
             const auto f = args.arguments->getNativeFunction();
-            const auto timeout = *(args.arguments+1);
+            const auto timeout = int(*(args.arguments+1));
             std::invoke(f, juce::var::NativeFunctionArgs(juce::var(), args.arguments + 2, args.numArguments - 2));
             return juce::var(1);
           });
