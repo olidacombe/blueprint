@@ -235,19 +235,6 @@ namespace blueprint
             duk_pop(ctxRawPtr);
         }
 
-        // TODO maybe
-        /*
-        void registerNativeMethod (const juce::String& name, juce::var::NativeFunction fn)
-        {
-            registerNativeProperty(name, juce::var(fn));
-        }
-
-        void registerNativeMethod (const juce::String& target, const juce::String& name, juce::var::NativeFunction fn)
-        {
-            registerNativeProperty(target, name, juce::var(fn));
-        }
-        */
-
         //==============================================================================
         juce::var invoke (const juce::String& name, const std::vector<juce::var>& vargs)
         {
@@ -281,12 +268,16 @@ namespace blueprint
             return result;
         }
 
-        struct TimeoutFunctionManager : public juce::ChangeListener
+        struct TimeoutFunctionManager : private juce::MultiTimer
         {
           ~TimeoutFunctionManager() override {}
 
           void clear(int id)
           {
+            stopTimer(id);
+            freeId(id);
+
+
             const auto f = timeoutFunctions.find(id);
             if(f != timeoutFunctions.cend()) timeoutFunctions.erase(f);
           }
@@ -294,7 +285,9 @@ namespace blueprint
           int newTimeout(const juce::var::NativeFunctionArgs& args, const bool recurring=false)
           {
             const auto id = reserveId();
-            timeoutFunctions.emplace(id, TimeoutFunction(id, args, recurring));
+            timeoutFunctions.emplace(id, TimeoutFunction(args, recurring));
+            const int timeoutMillis = *(args.arguments + 1);
+            startTimer(id, timeoutMillis);
             return id;
           }
 
@@ -303,9 +296,15 @@ namespace blueprint
             return newTimeout(args, true);
           }
 
-          void changeListenerCallback(juce::ChangeBroadcaster *src) override
+          void timerCallback(int id) override
           {
-            // clear(static_cast<TimeoutFunction*>(src)->id);
+            const auto f = timeoutFunctions.find(id);
+            if(f != timeoutFunctions.cend())
+              if(!f->second.call())
+              {
+                // f doesn't want to run again
+                clear(id);
+              }
           }
 
           private:
@@ -315,43 +314,27 @@ namespace blueprint
               static int id = 0;
               return id++;
             }
+             void freeId(int id)
+             {
+               // TODO if we decide to get smart with reserveId
+               juce::ignoreUnused(id);
+             }
 
             struct TimeoutFunction
-            : /*public juce::ChangeBroadcaster, */ private juce::Timer
             {
-              TimeoutFunction(int _id, const juce::var::NativeFunctionArgs& _args, const bool _recurring=false)
-              : id(_id), recurring(_recurring), args(juce::var(), _args.arguments + 2, _args.numArguments - 2)
+              TimeoutFunction(const juce::var::NativeFunctionArgs& _args, const bool _recurring=false)
+              : f(_args.arguments->getNativeFunction()), args(juce::var(), _args.arguments + 2, _args.numArguments - 2), recurring(_recurring)
+              {}
+
+              bool call()
               {
-                // TODO some validation, throw if not good
-                f = _args.arguments->getNativeFunction();
-                intervalMilliseconds = int(*(_args.arguments+1));
-                startTimer(intervalMilliseconds);
+                std::invoke(f, args);
+                // return whether you want to run again
+                return recurring;
               }
 
-              ~TimeoutFunction() override { /* any need to stopTimer() here? */ }
-
-              // id may be handy when pushing references to duk heap
-              // to prevent arguments getting GCd
-              int id;
-              // also will need engine access in order to do duk heap
-              // push / pop ops
-
-              int intervalMilliseconds;
-              bool recurring;
-
               private:
-                void timerCallback() override
-                {
-                  if(!recurring)
-                  {
-                    stopTimer();
-                  }
-                  std::invoke(f, args);
-                  if(!recurring) {
-                    // sendChangeMessage();
-                  }
-                }
-
+                bool recurring;
                 juce::var::NativeFunction f;
                 juce::var::NativeFunctionArgs args;
             };
