@@ -348,6 +348,11 @@ namespace blueprint
         {
           // TODO directly construct juce::var::NativeFunction using timeoutsManager object and pointer?
           const juce::var setTimeout = juce::var::NativeFunction([this](const juce::var::NativeFunctionArgs& args) {
+            // begin temp proof we have a lifetime problem
+            juce::var::NativeFunctionArgs a(juce::var(), args.arguments + 1, args.numArguments - 2);
+            juce::var::NativeFunction f(args.arguments->getNativeFunction());
+            std::invoke(f, a);
+            // end temp proof we have a lifetime problem
             return timeoutsManager.newTimeout(args);
           });
           registerNativeProperty("setTimeout", setTimeout);
