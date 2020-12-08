@@ -24,6 +24,10 @@ function animatedDraw(ctx) {
   ctx.fillRect(0, 0, width, 2);
 }
 
+function flipMuted({muted, ...rest}) {
+  return {muted: !muted, ...rest};
+}
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -34,14 +38,17 @@ class App extends Component {
     }
 
     this.timer = null;
+    this.updater = null;
   }
 
   componentDidMount() {
     this.timer = setInterval((a, b, c)=>console.log('hello timeout', a, b, c), 2000, "ok", this.state.muted, "then");
+    // this.updater = setInterval(()=>this.setState({muted: true}), 5000);
   }
 
   componentWillUnmount() {
     clearInterval(this.timer);
+    // clearInterval(this.updater);
   }
 
   _onMuteToggled(toggled) {
