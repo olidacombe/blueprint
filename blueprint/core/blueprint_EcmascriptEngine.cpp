@@ -272,11 +272,19 @@ namespace blueprint
         {
           ~TimeoutFunctionManager() override {}
 
+          void reset()
+          {
+            for(const auto &[id, timer] : timeoutFunctions)
+            {
+              stopTimer(id);
+            }
+            timeoutFunctions.clear();
+          }
+
           void clear(int id)
           {
             stopTimer(id);
             freeId(id);
-
 
             const auto f = timeoutFunctions.find(id);
             if(f != timeoutFunctions.cend()) timeoutFunctions.erase(f);
@@ -346,8 +354,6 @@ namespace blueprint
             std::map<int, TimeoutFunction> timeoutFunctions;
         };
 
-        TimeoutFunctionManager timeoutsManager;
-
         void registerTimerGlobals()
         {
           // TODO directly construct juce::var::NativeFunction using timeoutsManager object and pointer?
@@ -383,6 +389,7 @@ namespace blueprint
             // finalizers in the event of an evaluation error or duk_pcall failure.
             persistentReleasePool.clear();
 
+            timeoutsManager.reset();
             registerTimerGlobals();
         }
 
@@ -798,6 +805,7 @@ namespace blueprint
         int32_t nextMagicInt = 0;
         std::unordered_map<uint32_t, std::unique_ptr<LambdaHelper>> persistentReleasePool;
         std::array<std::unique_ptr<LambdaHelper>, 255> temporaryReleasePool;
+        TimeoutFunctionManager timeoutsManager;
 
         // The duk_context must be listed after the release pools so that it is destructed
         // before the pools. That way, as the duk_context is being freed and finalizing all
