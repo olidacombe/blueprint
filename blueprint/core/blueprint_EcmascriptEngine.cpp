@@ -323,12 +323,16 @@ namespace blueprint
             struct TimeoutFunction
             {
               TimeoutFunction(const juce::var::NativeFunctionArgs& _args, const bool _recurring=false)
-              : f(_args.arguments->getNativeFunction()), args(juce::var(), _args.arguments + 2, _args.numArguments - 2), recurring(_recurring)
-              {}
+              : f(_args.arguments->getNativeFunction()), recurring(_recurring)
+              {
+                // TODO reserve?
+                for(int i = 2; i < _args.numArguments; i++)
+                  args.push_back(*(_args.arguments + i));
+              }
 
               bool call()
               {
-                std::invoke(f, args);
+                std::invoke(f, juce::var::NativeFunctionArgs(juce::var(), args.data(), static_cast<int>(args.size())));
                 // return whether you want to run again
                 return recurring;
               }
@@ -336,7 +340,7 @@ namespace blueprint
               private:
                 bool recurring;
                 juce::var::NativeFunction f;
-                juce::var::NativeFunctionArgs args;
+                std::vector<juce::var> args;
             };
 
             std::map<int, TimeoutFunction> timeoutFunctions;
@@ -348,11 +352,6 @@ namespace blueprint
         {
           // TODO directly construct juce::var::NativeFunction using timeoutsManager object and pointer?
           const juce::var setTimeout = juce::var::NativeFunction([this](const juce::var::NativeFunctionArgs& args) {
-            // begin temp proof we have a lifetime problem
-            juce::var::NativeFunctionArgs a(juce::var(), args.arguments + 1, args.numArguments - 2);
-            juce::var::NativeFunction f(args.arguments->getNativeFunction());
-            std::invoke(f, a);
-            // end temp proof we have a lifetime problem
             return timeoutsManager.newTimeout(args);
           });
           registerNativeProperty("setTimeout", setTimeout);
