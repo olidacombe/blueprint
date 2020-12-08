@@ -38,17 +38,19 @@ class App extends Component {
     }
 
     this.timer = null;
-    this.updater = null;
+    this.upd = null;
   }
 
   componentDidMount() {
     this.timer = setInterval((a, b, c)=>console.log('hello timeout', a, b, c), 2000, "ok", this.state.muted, "then");
-    // this.updater = setInterval(()=>this.setState({muted: true}), 5000);
+    this.upd = setInterval(console.log, 500, 'faster interval');
+    // this.updater = setInterval(() => {this.state.muted =! this.state.muted }, 300);
+    // this.updater = setInterval(console.log, 300, "alright");
   }
 
   componentWillUnmount() {
     clearInterval(this.timer);
-    // clearInterval(this.updater);
+    clearInterval(this.upd);
   }
 
   _onMuteToggled(toggled) {
