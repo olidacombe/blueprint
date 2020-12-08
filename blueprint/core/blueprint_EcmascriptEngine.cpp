@@ -323,9 +323,8 @@ namespace blueprint
             struct TimeoutFunction
             {
               TimeoutFunction(const juce::var::NativeFunctionArgs& _args, const bool _recurring=false)
-              : f(_args.arguments->getNativeFunction()), recurring(_recurring)
+              : f(_args.arguments->getNativeFunction()), args(_args.numArguments - 2), recurring(_recurring)
               {
-                // TODO reserve?
                 for(int i = 2; i < _args.numArguments; i++)
                   args.push_back(*(_args.arguments + i));
               }

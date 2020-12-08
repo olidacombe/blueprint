@@ -37,7 +37,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.timer = setInterval((a, b, c)=>console.log('hello timeout', a, b, c), 10000, "ok", this.state.muted, "then");
+    this.timer = setInterval((a, b, c)=>console.log('hello timeout', a, b, c), 2000, "ok", this.state.muted, "then");
   }
 
   componentWillUnmount() {
