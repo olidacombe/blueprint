@@ -42,10 +42,8 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.timer = setInterval((a, b, c)=>console.log('hello timeout', a, b, c), 2000, "ok", this.state.muted, "then");
-    this.upd = setInterval(console.log, 500, 'faster interval');
-    // this.updater = setInterval(() => {this.state.muted =! this.state.muted }, 300);
-    // this.updater = setInterval(console.log, 300, "alright");
+    this.timer = setInterval((m)=>console.log(m, this.state.muted), 1000, "muted: ");
+    this.upd = setInterval(()=>this.setState(({muted, ...rest}) => ({ muted: !muted, ...rest})), 2000);
   }
 
   componentWillUnmount() {
