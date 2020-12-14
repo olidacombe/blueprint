@@ -386,10 +386,8 @@ namespace blueprint
                 }
                 catch (Error& err)
                 {
-                    duk_push_current_function(ctx);
-                    err.stack = duk_safe_to_stacktrace(ctx, -1);
-                    err.context = detail::getContextDump(ctx);
-                    throw err;
+                    duk_push_error_object(ctx, DUK_ERR_TYPE_ERROR, err.what());
+                    return duk_throw(ctx);
                 }
 
                 // For an undefined result, return 0 to notify the duktape interpreter

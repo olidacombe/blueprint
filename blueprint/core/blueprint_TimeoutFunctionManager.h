@@ -56,8 +56,8 @@ struct TimeoutFunctionManager : private juce::MultiTimer
         {
             if(!f->second.call())
             {
-            // f doesn't want to run again
-            clear(id);
+                // f doesn't want to run again
+                clear(id);
             }
         }
     }
@@ -104,24 +104,24 @@ struct TimeoutFunctionManager : private juce::MultiTimer
             TimeoutFunction(const juce::var::NativeFunctionArgs& _args, const bool _recurring=false)
             : f(_args.arguments->getNativeFunction()), recurring(_recurring)
             {
-            args.reserve(_args.numArguments - 2);
-            for(int i = 2; i < _args.numArguments; i++)
-                args.push_back(*(_args.arguments + i));
+                args.reserve(_args.numArguments - 2);
+                for(int i = 2; i < _args.numArguments; i++)
+                    args.push_back(*(_args.arguments + i));
             }
 
             bool call()
             {
-            JUCE_ASSERT_MESSAGE_THREAD
+                JUCE_ASSERT_MESSAGE_THREAD
 
-            std::invoke(f, juce::var::NativeFunctionArgs(juce::var(), args.data(), static_cast<int>(args.size())));
-            // return whether you want to run again
-            return recurring;
+                std::invoke(f, juce::var::NativeFunctionArgs(juce::var(), args.data(), static_cast<int>(args.size())));
+                // return whether you want to run again
+                return recurring;
             }
 
             private:
-            bool recurring;
-            juce::var::NativeFunction f;
-            std::vector<juce::var> args;
+                bool recurring;
+                juce::var::NativeFunction f;
+                std::vector<juce::var> args;
         };
 
         std::map<int, TimeoutFunction> timeoutFunctions;
