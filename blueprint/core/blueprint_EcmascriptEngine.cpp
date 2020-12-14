@@ -147,7 +147,7 @@ namespace blueprint
     //==============================================================================
     struct EcmascriptEngine::Pimpl : private juce::Timer
     {
-        Pimpl()
+        Pimpl() : timeoutsManager(std::make_unique<TimeoutFunctionManager<Error>>())
         {
             // Allocate a new js heap
             dukContext = std::shared_ptr<duk_context>(
@@ -272,17 +272,25 @@ namespace blueprint
         void registerTimerGlobals()
         {
           const auto setTimeout = juce::var::NativeFunction([this](const juce::var::NativeFunctionArgs& args) {
-            return timeoutsManager.newTimeout(args);
+            if(args.numArguments < 2)
+                throw Error("setTimeout requires a callback and interval");
+            if(!(*args.arguments).isMethod())
+                throw Error("First argument to setTimeout must be a callback");
+            if(!(*(args.arguments + 1)).isDouble())
+                throw Error("Second argument to setTimeout must be a number of milliseconds");
+            return timeoutsManager->newTimeout(args);
           });
           registerNativeProperty("setTimeout", setTimeout);
 
           const auto setInterval = juce::var::NativeFunction([this](const juce::var::NativeFunctionArgs& args) {
-            return timeoutsManager.newInterval(args);
+            return timeoutsManager->newInterval(args);
           });
           registerNativeProperty("setInterval", setInterval);
 
           const auto clearTimeout = juce::var::NativeFunction([this](const juce::var::NativeFunctionArgs& args) {
-            return timeoutsManager.clearTimeout(args);
+            if(args.numArguments < 1 || !(*args.arguments).isDouble())
+                throw Error("clearTimeout requires a single integer id argument");
+            return timeoutsManager->clearTimeout(static_cast<int>(*args.arguments));
           });
           registerNativeProperty("clearTimeout", clearTimeout);
           registerNativeProperty("clearInterval", clearTimeout);
@@ -301,7 +309,7 @@ namespace blueprint
             // finalizers in the event of an evaluation error or duk_pcall failure.
             persistentReleasePool.clear();
 
-            timeoutsManager.reset();
+            timeoutsManager = std::make_unique<TimeoutFunctionManager<Error>>();
             registerTimerGlobals();
         }
 
@@ -727,7 +735,7 @@ namespace blueprint
         int32_t nextMagicInt = 0;
         std::unordered_map<uint32_t, std::unique_ptr<LambdaHelper>> persistentReleasePool;
         std::array<std::unique_ptr<LambdaHelper>, 255> temporaryReleasePool;
-        TimeoutFunctionManager<Error> timeoutsManager;
+        std::unique_ptr<TimeoutFunctionManager<Error>> timeoutsManager;
 
         // The duk_context must be listed after the release pools so that it is destructed
         // before the pools. That way, as the duk_context is being freed and finalizing all
