@@ -17,18 +17,12 @@ struct TimeoutFunctionManager : private juce::MultiTimer
         return juce::var();
     }
 
-    int newTimeout(const juce::var::NativeFunctionArgs& args, const bool repeats=false)
+    int newTimeout(const juce::var::NativeFunction f, const int timeoutMillis, const std::vector<juce::var>&& args, const bool repeats=false)
     {
         static int nextId = 0;
-        timeoutFunctions.emplace(nextId, TimeoutFunction(args, repeats));
-        const int timeoutMillis = *(args.arguments + 1);
+        timeoutFunctions.emplace(nextId, TimeoutFunction(f, std::move(args), repeats));
         startTimer(nextId, timeoutMillis);
         return nextId++;
-    }
-
-    int newInterval(const juce::var::NativeFunctionArgs& args)
-    {
-        return newTimeout(args, true);
     }
 
     void timerCallback(int id) override
@@ -49,13 +43,8 @@ struct TimeoutFunctionManager : private juce::MultiTimer
     private:
         struct TimeoutFunction
         {
-            TimeoutFunction(const juce::var::NativeFunctionArgs& _args, const bool _repeats=false)
-            : f(_args.arguments->getNativeFunction()), repeats(_repeats)
-            {
-                args.reserve(_args.numArguments - 2);
-                for(int i = 2; i < _args.numArguments; i++)
-                    args.push_back(*(_args.arguments + i));
-            }
+            TimeoutFunction(const juce::var::NativeFunction _f, const std::vector<juce::var> &&_args, const bool _repeats=false)
+            : f(_f), args(std::move(_args)), repeats(_repeats) {}
 
             const juce::var::NativeFunction f;
             std::vector<juce::var> args;
