@@ -272,18 +272,21 @@ namespace blueprint
         // IsSetter is true for setTimeout / setInterval
         // and false for clearTimeout / clearInterval
         template <bool IsSetter = false, bool Repeats = false, typename MethodType>
-        void registerNativeTimerFunction(juce::String name, MethodType method)//, Validators... validators)
+        void registerNativeTimerFunction(const char* name, MethodType method)//, Validators... validators)
         {
-            registerNativeProperty(name, [this, method] (const juce::var::NativeFunctionArgs& _args) -> juce::var {
-                if(IsSetter)
+            registerNativeProperty(name, juce::var::NativeFunction([this, method] (const juce::var::NativeFunctionArgs& _args) -> juce::var {
+                if constexpr (IsSetter)
                 {
+                    jassert(_args.numArguments >= 2);
                     std::vector<juce::var> args(_args.numArguments - 2);
                     for(auto i=2; i<_args.numArguments; i++)
                         args.push_back(_args.arguments[i]);
                     return (this->timeoutsManager.get()->*method)(_args.arguments[0].getNativeFunction(), _args.arguments[1], std::move(args), Repeats);
                 }
-                return (this->timeoutsManager.get()->*method)(_args.arguments[0]);
-            });
+                // TODO this correctly
+                if constexpr (!IsSetter)
+                    return (this->timeoutsManager.get()->*method)(_args.arguments[0]);
+            }));
         }
 
 
