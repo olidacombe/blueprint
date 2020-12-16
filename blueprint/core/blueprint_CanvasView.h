@@ -419,11 +419,7 @@ namespace blueprint
                         //TODO; Handle antiClockWise
                         //bool        antiClockWise = args.arguments[5];
 
-                        const float width  = radius * 2;
-                        const float height = radius * 2;
-
-                        path.addArc(x, y, width, height, startAngle, endAngle);
-
+                        path.addCentredArc(x, y, radius, radius, 0.0f, startAngle, endAngle, false);
                         return juce::var();
                     }
             });
@@ -672,6 +668,10 @@ namespace blueprint
     {
     public:
         //==============================================================================
+        static const inline juce::Identifier animateProp = "animate";
+        static const inline juce::Identifier onDrawProp  = "onDraw";
+
+        //==============================================================================
         CanvasView()
             : ctx(new CanvasContext())
         {
@@ -688,7 +688,7 @@ namespace blueprint
         {
             View::setProperty(name, value);
 
-            if (name == juce::Identifier("animate"))
+            if (name == animateProp)
             {
                 bool shouldAnimate = value;
 
@@ -714,12 +714,12 @@ namespace blueprint
             jassert(ctx);
             ctx->init();
 
-            if (props.contains("onDraw") && props["onDraw"].isMethod())
+            if (props.contains(onDrawProp) && props[onDrawProp].isMethod())
             {
                 std::vector<juce::var> jsArgs {{ctx.get()}};
                 juce::var::NativeFunctionArgs nfArgs (juce::var(), jsArgs.data(), static_cast<int>(jsArgs.size()));
 
-                std::invoke(props["onDraw"].getNativeFunction(), nfArgs);
+                std::invoke(props[onDrawProp].getNativeFunction(), nfArgs);
             }
             else
             {

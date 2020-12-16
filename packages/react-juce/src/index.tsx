@@ -14,6 +14,7 @@ export * from './components/Canvas';
 export * from './components/Text';
 export * from './components/Image';
 export * from './components/Button';
+export * from './components/Slider';
 
 export * from './lib/SyntheticEvents';
 

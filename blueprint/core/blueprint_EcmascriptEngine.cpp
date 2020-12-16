@@ -80,7 +80,6 @@
 #endif
 
 #include "blueprint_EcmascriptEngine.h"
-#include "blueprint_TimeoutFunctionManager.h"
 
 
 namespace blueprint
@@ -147,29 +146,13 @@ namespace blueprint
     //==============================================================================
     struct EcmascriptEngine::Pimpl : private juce::Timer
     {
-        Pimpl() : timeoutsManager(std::make_unique<TimeoutFunctionManager<Error>>())
+        Pimpl()
         {
-            // Allocate a new js heap
-            dukContext = std::shared_ptr<duk_context>(
-                duk_create_heap (nullptr, nullptr, nullptr, nullptr, detail::fatalErrorHandler),
-                duk_destroy_heap
-            );
-
-            // Add console.log support
-            auto* ctxRawPtr = dukContext.get();
-            duk_console_init(ctxRawPtr, DUK_CONSOLE_FLUSH);
-
-            // Install a pointer back to this EcmascriptEngine instance
-            duk_push_global_stash(ctxRawPtr);
-            duk_push_pointer(ctxRawPtr, (void *) this);
-            duk_put_prop_string(ctxRawPtr, -2, DUK_HIDDEN_SYMBOL("__EcmascriptEngineInstance__"));
-            duk_pop(ctxRawPtr);
-
-            registerTimerGlobals();
+            reset();
         }
 
         //==============================================================================
-        juce::var evaluate (const juce::String& code)
+        juce::var evaluateInline (const juce::String& code)
         {
             jassert(code.isNotEmpty());
             auto* ctxRawPtr = dukContext.get();
@@ -269,54 +252,26 @@ namespace blueprint
             return result;
         }
 
-        // IsSetter is true for setTimeout / setInterval
-        // and false for clearTimeout / clearInterval
-        template <bool IsSetter = false, bool Repeats = false, typename MethodType>
-        void registerNativeTimerFunction(const char* name, MethodType method)//, Validators... validators)
-        {
-            registerNativeProperty(name, juce::var::NativeFunction([this, method] (const juce::var::NativeFunctionArgs& _args) -> juce::var {
-                if constexpr (IsSetter)
-                {
-                    jassert(_args.numArguments >= 2);
-                    std::vector<juce::var> args(_args.numArguments - 2);
-                    for(auto i=2; i<_args.numArguments; i++)
-                        args.push_back(_args.arguments[i]);
-                    return (this->timeoutsManager.get()->*method)(_args.arguments[0].getNativeFunction(), _args.arguments[1], std::move(args), Repeats);
-                }
-                // TODO this correctly
-                if constexpr (!IsSetter)
-                    return (this->timeoutsManager.get()->*method)(_args.arguments[0]);
-            }));
-        }
-
-
-        void registerTimerGlobals()
-        {
-            registerNativeTimerFunction<true>(
-                "setTimeout", &TimeoutFunctionManager<Error>::newTimeout
-            );
-            registerNativeTimerFunction<true, true>(
-                "setInterval", &TimeoutFunctionManager<Error>::newTimeout
-            );
-            registerNativeTimerFunction("clearTimeout", &TimeoutFunctionManager<Error>::clearTimeout);
-            registerNativeTimerFunction("clearInterval", &TimeoutFunctionManager<Error>::clearTimeout);
-        }
-
         void reset()
         {
+            // Allocate a new js heap
+            dukContext = std::shared_ptr<duk_context>(
+                duk_create_heap (nullptr, nullptr, nullptr, nullptr, detail::fatalErrorHandler),
+                duk_destroy_heap
+            );
+
+            // Add console.log support
             auto* ctxRawPtr = dukContext.get();
+            duk_console_init(ctxRawPtr, DUK_CONSOLE_FLUSH);
 
-            // Clear out the stack so we can re-register native functions
-            // after we clear out the lambda release pool etc.
-            while (duk_get_top(ctxRawPtr))
-                duk_remove(ctxRawPtr, duk_get_top_index(ctxRawPtr));
+            // Install a pointer back to this EcmascriptEngine instance
+            duk_push_global_stash(ctxRawPtr);
+            duk_push_pointer(ctxRawPtr, (void *) this);
+            duk_put_prop_string(ctxRawPtr, -2, DUK_HIDDEN_SYMBOL("__EcmascriptEngineInstance__"));
+            duk_pop(ctxRawPtr);
 
-            // Clear the LambdaHelper release pool as duktape does not call object
-            // finalizers in the event of an evaluation error or duk_pcall failure.
+            // Clear out any lambdas attached to the previous context instance
             persistentReleasePool.clear();
-
-            timeoutsManager = std::make_unique<TimeoutFunctionManager<Error>>();
-            registerTimerGlobals();
         }
 
         //==============================================================================
@@ -387,22 +342,12 @@ namespace blueprint
                 for (int i = 0; i < nargs; ++i)
                     args.push_back(engine->readVarFromDukStack(engine->dukContext, i));
 
-                juce::var result;
-
                 // Now we can invoke the user method with its arguments
-                try
-                {
-                    result = std::invoke(helper->callback, juce::var::NativeFunctionArgs(
-                        juce::var(),
-                        args.data(),
-                        static_cast<int>(args.size())
-                    ));
-                }
-                catch (Error& err)
-                {
-                    duk_push_error_object(ctx, DUK_ERR_TYPE_ERROR, err.what());
-                    return duk_throw(ctx);
-                }
+                auto result = std::invoke(helper->callback, juce::var::NativeFunctionArgs(
+                    juce::var(),
+                    args.data(),
+                    static_cast<int>(args.size())
+                ));
 
                 // For an undefined result, return 0 to notify the duktape interpreter
                 if (result.isUndefined())
@@ -741,7 +686,6 @@ namespace blueprint
         int32_t nextMagicInt = 0;
         std::unordered_map<uint32_t, std::unique_ptr<LambdaHelper>> persistentReleasePool;
         std::array<std::unique_ptr<LambdaHelper>, 255> temporaryReleasePool;
-        std::unique_ptr<TimeoutFunctionManager<Error>> timeoutsManager;
 
         // The duk_context must be listed after the release pools so that it is destructed
         // before the pools. That way, as the duk_context is being freed and finalizing all
@@ -754,9 +698,9 @@ namespace blueprint
         : mPimpl(std::make_unique<Pimpl>()) {}
 
     //==============================================================================
-    juce::var EcmascriptEngine::evaluate (const juce::String& code)
+    juce::var EcmascriptEngine::evaluateInline (const juce::String& code)
     {
-        return mPimpl->evaluate(code);
+        return mPimpl->evaluateInline(code);
     }
 
     juce::var EcmascriptEngine::evaluate (const juce::File& code)
