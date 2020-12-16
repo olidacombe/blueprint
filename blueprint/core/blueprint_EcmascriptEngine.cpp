@@ -80,6 +80,7 @@
 #endif
 
 #include "blueprint_EcmascriptEngine.h"
+#include "blueprint_TimeoutFunctionManager.h"
 
 
 namespace blueprint
@@ -252,8 +253,43 @@ namespace blueprint
             return result;
         }
 
+        // IsSetter is true for setTimeout / setInterval
+        // and false for clearTimeout / clearInterval
+        template <bool IsSetter = false, bool Repeats = false, typename MethodType>
+        void registerNativeTimerFunction(const char* name, MethodType method)//, Validators... validators)
+        {
+            registerNativeProperty(name, juce::var::NativeFunction([this, method] (const juce::var::NativeFunctionArgs& _args) -> juce::var {
+                if constexpr (IsSetter)
+                {
+                    jassert(_args.numArguments >= 2);
+                    std::vector<juce::var> args(_args.numArguments - 2);
+                    for(auto i=2; i<_args.numArguments; i++)
+                        args.push_back(_args.arguments[i]);
+                    return (this->timeoutsManager.get()->*method)(_args.arguments[0].getNativeFunction(), _args.arguments[1], std::move(args), Repeats);
+                }
+                // TODO this correctly
+                if constexpr (!IsSetter)
+                    return (this->timeoutsManager.get()->*method)(_args.arguments[0]);
+            }));
+        }
+
+        void registerTimerGlobals()
+        {
+            registerNativeTimerFunction<true>(
+                "setTimeout", &TimeoutFunctionManager<Error>::newTimeout
+            );
+            registerNativeTimerFunction<true, true>(
+                "setInterval", &TimeoutFunctionManager<Error>::newTimeout
+            );
+            registerNativeTimerFunction("clearTimeout", &TimeoutFunctionManager<Error>::clearTimeout);
+            registerNativeTimerFunction("clearInterval", &TimeoutFunctionManager<Error>::clearTimeout);
+        }
+
         void reset()
         {
+            // Clear out any timer callbacks
+            timeoutsManager = std::make_unique<TimeoutFunctionManager<Error>>();
+
             // Allocate a new js heap
             dukContext = std::shared_ptr<duk_context>(
                 duk_create_heap (nullptr, nullptr, nullptr, nullptr, detail::fatalErrorHandler),
@@ -272,6 +308,9 @@ namespace blueprint
 
             // Clear out any lambdas attached to the previous context instance
             persistentReleasePool.clear();
+
+            // Register our various timeout-related native functions
+            registerTimerGlobals();
         }
 
         //==============================================================================
@@ -342,12 +381,22 @@ namespace blueprint
                 for (int i = 0; i < nargs; ++i)
                     args.push_back(engine->readVarFromDukStack(engine->dukContext, i));
 
+                juce::var result;
+
                 // Now we can invoke the user method with its arguments
-                auto result = std::invoke(helper->callback, juce::var::NativeFunctionArgs(
-                    juce::var(),
-                    args.data(),
-                    static_cast<int>(args.size())
-                ));
+                try
+                {
+                    result = std::invoke(helper->callback, juce::var::NativeFunctionArgs(
+                        juce::var(),
+                        args.data(),
+                        static_cast<int>(args.size())
+                    ));
+                }
+                catch (Error& err)
+                {
+                    duk_push_error_object(ctx, DUK_ERR_TYPE_ERROR, err.what());
+                    return duk_throw(ctx);
+                }
 
                 // For an undefined result, return 0 to notify the duktape interpreter
                 if (result.isUndefined())
@@ -686,6 +735,7 @@ namespace blueprint
         int32_t nextMagicInt = 0;
         std::unordered_map<uint32_t, std::unique_ptr<LambdaHelper>> persistentReleasePool;
         std::array<std::unique_ptr<LambdaHelper>, 255> temporaryReleasePool;
+        std::unique_ptr<TimeoutFunctionManager<Error>> timeoutsManager;
 
         // The duk_context must be listed after the release pools so that it is destructed
         // before the pools. That way, as the duk_context is being freed and finalizing all
