@@ -269,18 +269,55 @@ namespace blueprint
             return result;
         }
 
+        template <typename Validator, typename Explanation, typename ...Rest>
+        void validateNativeFunctionArgs(const juce::var::NativeFunctionArgs& args, const int offset, Validator validator, Explanation explanation, Rest... rest)
+        {
+            validateNativeFunctionArgs(args, offset, validator, explanation);
+            validateNativeFunctionArgs(args, offset + 1, rest...);
+        }
+
+        template <typename Validator, typename Explanation>
+        void validateNativeFunctionArgs(const juce::var::NativeFunctionArgs& args, const int offset, Validator validator, Explanation explanation)
+        {
+            if(args.numArguments < 1 || !((args.arguments + offset)->*validator)())
+                throw Error("Required argument " + juce::String(offset + 1) + " " + explanation);
+        }
+
+        template <typename MethodType, typename ...Validators>
+        void registerNativeTimerFunction(juce::String name, MethodType method, Validators... validators)
+        {
+            registerNativeProperty(name, [=, &name] (const juce::var::NativeFunctionArgs& args) -> juce::var {
+                try
+                {
+                    validateNativeFunctionArgs(args, 0, validators...);
+                }
+                catch (Error& err)
+                {
+                    throw Error("Invalid arguments to " + name + ": " + err.what());
+                }
+
+                return (timeoutsManager.get()->*method)(args);
+            });
+        }
+
+
         void registerTimerGlobals()
         {
-          const auto setTimeout = juce::var::NativeFunction([this](const juce::var::NativeFunctionArgs& args) {
-            if(args.numArguments < 2)
-                throw Error("setTimeout requires a callback and interval");
-            if(!(*args.arguments).isMethod())
-                throw Error("First argument to setTimeout must be a callback");
-            if(!(*(args.arguments + 1)).isDouble())
-                throw Error("Second argument to setTimeout must be a number of milliseconds");
-            return timeoutsManager->newTimeout(args);
-          });
-          registerNativeProperty("setTimeout", setTimeout);
+        //   const auto setTimeout = juce::var::NativeFunction([this](const juce::var::NativeFunctionArgs& args) {
+        //     if(args.numArguments < 2)
+        //         throw Error("setTimeout requires a callback and interval");
+        //     if(!(*args.arguments).isMethod())
+        //         throw Error("First argument to setTimeout must be a callback");
+        //     if(!(*(args.arguments + 1)).isDouble())
+        //         throw Error("Second argument to setTimeout must be a number of milliseconds");
+        //     return timeoutsManager->newTimeout(args);
+        //   });
+        //   registerNativeProperty("setTimeout", setTimeout);
+            registerNativeTimerFunction(
+                "setTimeout", &TimeoutFunctionManager<Error>::newTimeout,
+                &juce::var::isMethod, "must be a callback function",
+                &juce::var::isDouble, "must be an integer number of milliseconds"
+            );
 
           const auto setInterval = juce::var::NativeFunction([this](const juce::var::NativeFunctionArgs& args) {
             return timeoutsManager->newInterval(args);
