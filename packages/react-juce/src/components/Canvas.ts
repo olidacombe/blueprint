@@ -1,59 +1,59 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
 export function bindCanvasContextProperties(ctx: any) {
-  Object.defineProperty(ctx, 'fillStyle', {
+  Object.defineProperty(ctx, "fillStyle", {
     enumerable: false,
     configurable: false,
-    get: function() {
-      return 'Not Supported';
+    get: function () {
+      return "Not Supported";
     },
-    set: function(value) {
+    set: function (value) {
       this.__setFillStyle(value);
-    }
+    },
   });
 
-  Object.defineProperty(ctx, 'strokeStyle', {
+  Object.defineProperty(ctx, "strokeStyle", {
     enumerable: false,
     configurable: false,
-    get: function() {
-      return 'Not Supported';
+    get: function () {
+      return "Not Supported";
     },
-    set: function(value) {
+    set: function (value) {
       this.__setStrokeStyle(value);
-    }
+    },
   });
 
-  Object.defineProperty(ctx, 'lineWidth', {
+  Object.defineProperty(ctx, "lineWidth", {
     enumerable: false,
     configurable: false,
-    get: function() {
-      return 'Not Supported';
+    get: function () {
+      return "Not Supported";
     },
-    set: function(value) {
+    set: function (value) {
       this.__setLineWidth(value);
-    }
+    },
   });
 
-  Object.defineProperty(ctx, 'font', {
+  Object.defineProperty(ctx, "font", {
     enumerable: false,
     configurable: false,
-    get: function() {
-      return 'Not Supported';
+    get: function () {
+      return "Not Supported";
     },
-    set: function(value) {
+    set: function (value) {
       this.__setFont(value);
-    }
+    },
   });
 
-  Object.defineProperty(ctx, 'textAlign', {
+  Object.defineProperty(ctx, "textAlign", {
     enumerable: false,
     configurable: false,
-    get: function() {
-      return 'Not Supported';
+    get: function () {
+      return "Not Supported";
     },
-    set: function(value) {
+    set: function (value) {
       this.__setTextAlign(value);
-    }
+    },
   });
 }
 
@@ -77,23 +77,23 @@ export class Canvas extends Component<CanvasProps, CanvasState> {
 
     this.state = {
       width: 0,
-      height: 0
+      height: 0,
     };
   }
 
   _onMeasure(e: any) {
     this.setState({
       width: e.width,
-      height: e.height
+      height: e.height,
     });
 
-    if (typeof this.props.onMeasure === 'function') {
+    if (typeof this.props.onMeasure === "function") {
       this.props.onMeasure(e);
     }
   }
 
   _onDraw(ctx: CanvasRenderingContext2D) {
-    if (typeof this.props.onDraw === 'function') {
+    if (typeof this.props.onDraw === "function") {
       bindCanvasContextProperties(ctx);
 
       if (this.props.autoclear) {
@@ -108,9 +108,17 @@ export class Canvas extends Component<CanvasProps, CanvasState> {
     //TODO: Check whether need to use below arrow function for "this" binding
     //      is a bug in duktape. Possible this only occurs on linux. Does not
     //      appear to occur on mac.
-    return React.createElement('CanvasView', Object.assign({}, this.props, {
-      onDraw: (ctx: CanvasRenderingContext2D) => { this._onDraw(ctx) },
-      onMeasure: (e: any) => { this._onMeasure(e)}
-    }), this.props.children);
+    return React.createElement(
+      "CanvasView",
+      Object.assign({}, this.props, {
+        onDraw: (ctx: CanvasRenderingContext2D) => {
+          this._onDraw(ctx);
+        },
+        onMeasure: (e: any) => {
+          this._onMeasure(e);
+        },
+      }),
+      this.props.children
+    );
   }
 }
